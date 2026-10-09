@@ -23,7 +23,7 @@ button.primary{background:#4f6044;color:white;border-color:#4f6044}button:hover{
 #artboard{width:min(100%,540px);aspect-ratio:4/5;background:var(--sage);padding:5.5%;display:flex;align-items:stretch;justify-content:center;flex-direction:column;gap:2%;position:relative;overflow:hidden;box-shadow:0 8px 28px #20271918;color:var(--ink)}
 #sheet{background:var(--paper);padding:5%;height:100%;width:100%;display:flex;flex-direction:column;gap:2.5%;min-height:0}
 .topline,.bottomline{display:flex;justify-content:flex-end;gap:10px;align-items:center;font-size:clamp(6px,1.25vw,10px);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:650}
-.photoFrame{flex:1;min-height:0;background:#fff;padding:1.7%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.photoFrame{flex:1;min-height:0;background:var(--frame,#fff);padding:1.7%;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #photo{width:100%;height:100%;object-fit:cover;display:block}
 .photoPlaceholder{color:#7c8574;text-align:center;font-size:13px;padding:20px}
 .info{display:flex;flex-direction:column;gap:5px;padding-top:1%;min-height:0}
@@ -32,13 +32,116 @@ button.primary{background:#4f6044;color:white;border-color:#4f6044}button:hover{
 #scientific{font-family:Georgia,'Times New Roman',serif;font-style:italic;color:var(--muted);font-size:clamp(10px,1.8vw,17px)}
 .rule{height:1px;background:var(--line);width:100%;margin:2% 0}
 #caption{font-size:clamp(8px,1.25vw,12px);line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
-#badge{align-self:flex-start;padding:4px 9px;border:1px solid var(--line);border-radius:99px;font-size:clamp(6px,1.1vw,9px);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--sage)}
-#specialNumber{display:none;padding:4px 9px;border-radius:7px;background:var(--muted);color:#fff;font-size:clamp(7px,1.2vw,10px);letter-spacing:.08em;font-weight:750}
+#badge{align-self:flex-start;padding:4px 9px;border:1px solid var(--label-border,var(--line));border-radius:99px;font-size:clamp(6px,1.1vw,9px);letter-spacing:.08em;text-transform:uppercase;color:var(--label-text,var(--muted));background:var(--label-bg,var(--sage))}
+#specialNumber{display:none;padding:4px 9px;border-radius:7px;background:var(--special-number,var(--muted));color:#fff;font-size:clamp(7px,1.2vw,10px);letter-spacing:.08em;font-weight:750}
 #dateText{font-size:clamp(6px,.9vw,8px);letter-spacing:.08em;font-weight:500;opacity:.72}
 .hidden{display:none!important}.hint{font-size:12px;color:#7a8275;margin:7px 0 0}
 @media(max-width:850px){.app{grid-template-columns:1fr}.previewWrap{position:static;grid-row:1}.stage{max-height:none}#artboard{width:min(100%,500px)}.topline,.bottomline{font-size:9px}#birdName{font-size:clamp(25px,7vw,40px)}#scientific{font-size:clamp(13px,3.3vw,17px)}#caption{font-size:clamp(10px,2.5vw,12px)}}
 @media(min-width:851px){.stage #artboard{width:min(100%,560px)}}
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const palettes = {
+    sage: {
+      bgColor: '#e8ebdd',
+      paperColor: '#f8f6ef',
+      inkColor: '#343b2d',
+      mutedColor: '#69765b',
+      lineColor: '#c9cebf',
+      frameColor: '#ffffff',
+      labelBg: '#e8ebdd',
+      labelText: '#69765b',
+      labelBorder: '#c9cebf',
+      specialNumberColor: '#59674c'
+    },
+    cream: {
+      bgColor: '#e9dfc9',
+      paperColor: '#fbf7ed',
+      inkColor: '#40392d',
+      mutedColor: '#796a4d',
+      lineColor: '#d6c9ae',
+      frameColor: '#fffdf7',
+      labelBg: '#eee5d1',
+      labelText: '#786746',
+      labelBorder: '#d6c9ae',
+      specialNumberColor: '#675638'
+    },
+    blue: {
+      bgColor: '#dce5e8',
+      paperColor: '#f5f8f8',color pal
+      inkColor: '#2e3c42',
+      mutedColor: '#5e747c',
+      lineColor: '#bdcdd1',
+      frameColor: '#ffffff',
+      labelBg: '#e3ecee',
+      labelText: '#587079',
+      labelBorder: '#bdcdd1',
+      specialNumberColor: '#48616a'
+    },
+    pink: {
+      bgColor: '#eedfe0',
+      paperColor: '#fbf5f2',
+      inkColor: '#493638',
+      mutedColor: '#85666a',
+      lineColor: '#d9c3c5',
+      frameColor: '#fffdfc',
+      labelBg: '#f2e6e5',
+      labelText: '#805f64',
+      labelBorder: '#d9c3c5',
+      specialNumberColor: '#755257'
+    },
+    dark: {
+      bgColor: '#31473a',
+      paperColor: '#f3f2e8',
+      inkColor: '#29372e',
+      mutedColor: '#5b705f',
+      lineColor: '#c3cebd',
+      frameColor: '#fffefa',
+      labelBg: '#e1e9dc',
+      labelText: '#49634e',
+      labelBorder: '#b9c9b6',
+      specialNumberColor: '#3f6147'
+    }
+  };
+  const cssVariables = {
+    bgColor: '--sage',
+    paperColor: '--paper',
+    inkColor: '--ink',
+    mutedColor: '--muted',
+    lineColor: '--line',
+    frameColor: '--frame',
+    labelBg: '--label-bg',
+    labelText: '--label-text',
+    labelBorder: '--label-border',
+    specialNumberColor: '--special-number'
+  };
+  const artboard = document.getElementById('artboard');
+  const preset = document.getElementById('preset');
+  const colorInputs = Object.keys(cssVariables);
+
+  function applyColors(colors) {
+    for (const id of colorInputs) {
+      const value = colors[id];
+      document.getElementById(id).value = value;
+      artboard.style.setProperty(cssVariables[id], value);
+    }
+  }
+
+  preset.addEventListener('change', () => {
+    if (preset.value !== 'custom') applyColors(palettes[preset.value]);
+  });
+
+  for (const id of colorInputs) {
+    document.getElementById(id).addEventListener('input', event => {
+      const input = event.currentTarget;
+      artboard.style.setProperty(cssVariables[id], input.value);
+      preset.value = 'custom';
+    });
+  }
+
+  applyColors(palettes[preset.value]);
+});
+</script>
 </head>
 <body>
 <header><h1>Diário de Aves <span style="color:#69765b">/ editor</span></h1><p>Monte seu registro, personalize o visual e exporte a arte para o Instagram.</p></header>
