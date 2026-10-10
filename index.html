@@ -1,303 +1,1095 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Diário de Aves — Editor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pássaro do dia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="fonts-css" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=DM+Sans:ital,wght@0,400..700;1,400..700&family=Fraunces:ital,wght@0,400..700;1,400..700&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Special+Elite&display=swap">
 <style>
-:root{color-scheme:light;--ink:#343b2d;--muted:#69765b;--paper:#f8f6ef;--sage:#e8ebdd;--line:#c9cebf}
-*{box-sizing:border-box}body{margin:0;background:#f0f1ed;color:#252a22;font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
-header{padding:22px clamp(16px,4vw,40px);background:#fff;border-bottom:1px solid #ddd}header h1{margin:0;font-size:clamp(22px,3vw,30px);letter-spacing:-.04em}header p{margin:5px 0 0;color:#687064}
-.app{display:grid;grid-template-columns:minmax(280px,390px) minmax(0,1fr);gap:22px;padding:22px clamp(12px,3vw,32px);max-width:1500px;margin:auto;align-items:start}
-.panel{background:#fff;border:1px solid #e0e2dc;border-radius:16px;padding:18px;box-shadow:0 5px 20px #25301a0a}
-.panel h2{font-size:16px;margin:0 0 14px}.section{border-top:1px solid #eceee8;margin-top:16px;padding-top:15px}.section:first-of-type{border-top:0;margin-top:0;padding-top:0}
-label{display:block;font-size:12px;font-weight:700;color:#555f50;margin:10px 0 5px}
-input[type=text],input[type=date],input[type=number],select,textarea{width:100%;border:1px solid #d5d9d0;border-radius:8px;padding:9px 10px;background:#fff;color:#222;font:inherit;font-size:14px}
-textarea{resize:vertical;min-height:60px}input[type=color]{width:100%;height:36px;border:1px solid #d5d9d0;border-radius:8px;background:#fff;padding:3px}
-input[type=range]{width:100%;accent-color:#69765b}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.checkrow{display:flex;gap:8px;align-items:center;margin:9px 0;color:#4c5548;font-size:13px}.checkrow input{accent-color:#69765b}
-button{border:1px solid #d5d9d0;border-radius:9px;padding:10px 12px;font:600 13px system-ui;cursor:pointer;background:#fff;color:#30372b}
-button.primary{background:#4f6044;color:white;border-color:#4f6044}button:hover{filter:brightness(.97)}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.previewWrap{position:sticky;top:12px;min-width:0}.previewHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;color:#687064;font-size:13px}.stage{padding:clamp(10px,2vw,24px);border-radius:16px;background:#dfe2d9;display:flex;justify-content:center;align-items:flex-start;overflow:auto;max-height:calc(100vh - 85px)}
-/* preview canvas is rendered at 1080px wide for crisp export */
-#artboard{width:min(100%,540px);aspect-ratio:4/5;background:var(--sage);padding:5.5%;display:flex;align-items:stretch;justify-content:center;flex-direction:column;gap:2%;position:relative;overflow:hidden;box-shadow:0 8px 28px #20271918;color:var(--ink)}
-#sheet{background:var(--paper);padding:5%;height:100%;width:100%;display:flex;flex-direction:column;gap:2.5%;min-height:0}
-.topline,.bottomline{display:flex;justify-content:flex-end;gap:10px;align-items:center;font-size:clamp(6px,1.25vw,10px);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:650}
-.photoFrame{flex:1;min-height:0;background:var(--frame,#fff);padding:1.7%;display:flex;align-items:center;justify-content:center;overflow:hidden}
-#photo{width:100%;height:100%;object-fit:cover;display:block}
-.photoPlaceholder{color:#7c8574;text-align:center;font-size:13px;padding:20px}
-.info{display:flex;flex-direction:column;gap:5px;padding-top:1%;min-height:0}
-.labelRow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-#birdName{font-family:Georgia,'Times New Roman',serif;font-weight:500;letter-spacing:-.04em;font-size:clamp(22px,4.2vw,42px);line-height:1.02;margin:0;overflow-wrap:anywhere}
-#scientific{font-family:Georgia,'Times New Roman',serif;font-style:italic;color:var(--muted);font-size:clamp(10px,1.8vw,17px)}
-.rule{height:1px;background:var(--line);width:100%;margin:2% 0}
-#caption{font-size:clamp(8px,1.25vw,12px);line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
-#badge{align-self:flex-start;padding:4px 9px;border:1px solid var(--label-border,var(--line));border-radius:99px;font-size:clamp(6px,1.1vw,9px);letter-spacing:.08em;text-transform:uppercase;color:var(--label-text,var(--muted));background:var(--label-bg,var(--sage))}
-#specialNumber{display:none;padding:4px 9px;border-radius:7px;background:var(--special-number,var(--muted));color:#fff;font-size:clamp(7px,1.2vw,10px);letter-spacing:.08em;font-weight:750}
-#dateText{font-size:clamp(6px,.9vw,8px);letter-spacing:.08em;font-weight:500;opacity:.72}
-.hidden{display:none!important}.hint{font-size:12px;color:#7a8275;margin:7px 0 0}
-@media(max-width:850px){.app{grid-template-columns:1fr}.previewWrap{position:static;grid-row:1}.stage{max-height:none}#artboard{width:min(100%,500px)}.topline,.bottomline{font-size:9px}#birdName{font-size:clamp(25px,7vw,40px)}#scientific{font-size:clamp(13px,3.3vw,17px)}#caption{font-size:clamp(10px,2.5vw,12px)}}
-@media(min-width:851px){.stage #artboard{width:min(100%,560px)}}
-</style>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const palettes = {
-    sage: {
-      bgColor: '#e8ebdd',
-      paperColor: '#f8f6ef',
-      inkColor: '#343b2d',
-      mutedColor: '#69765b',
-      lineColor: '#c9cebf',
-      frameColor: '#ffffff',
-      labelBg: '#e8ebdd',
-      labelText: '#69765b',
-      labelBorder: '#c9cebf',
-      specialNumberColor: '#59674c'
-    },
-    cream: {
-      bgColor: '#e9dfc9',
-      paperColor: '#fbf7ed',
-      inkColor: '#40392d',
-      mutedColor: '#796a4d',
-      lineColor: '#d6c9ae',
-      frameColor: '#fffdf7',
-      labelBg: '#eee5d1',
-      labelText: '#786746',
-      labelBorder: '#d6c9ae',
-      specialNumberColor: '#675638'
-    },
-    blue: {
-      bgColor: '#dce5e8',
-      paperColor: '#f5f8f8',
-      inkColor: '#2e3c42',
-      mutedColor: '#5e747c',
-      lineColor: '#bdcdd1',
-      frameColor: '#ffffff',
-      labelBg: '#e3ecee',
-      labelText: '#587079',
-      labelBorder: '#bdcdd1',
-      specialNumberColor: '#48616a'
-    },
-    pink: {
-      bgColor: '#eedfe0',
-      paperColor: '#fbf5f2',
-      inkColor: '#493638',
-      mutedColor: '#85666a',
-      lineColor: '#d9c3c5',
-      frameColor: '#fffdfc',
-      labelBg: '#f2e6e5',
-      labelText: '#805f64',
-      labelBorder: '#d9c3c5',
-      specialNumberColor: '#755257'
-    },
-    dark: {
-      bgColor: '#31473a',
-      paperColor: '#f3f2e8',
-      inkColor: '#29372e',
-      mutedColor: '#5b705f',
-      lineColor: '#c3cebd',
-      frameColor: '#fffefa',
-      labelBg: '#e1e9dc',
-      labelText: '#49634e',
-      labelBorder: '#b9c9b6',
-      specialNumberColor: '#3f6147'
-    }
-  };
-  const cssVariables = {
-    bgColor: '--sage',
-    paperColor: '--paper',
-    inkColor: '--ink',
-    mutedColor: '--muted',
-    lineColor: '--line',
-    frameColor: '--frame',
-    labelBg: '--label-bg',
-    labelText: '--label-text',
-    labelBorder: '--label-border',
-    specialNumberColor: '--special-number'
-  };
-  const artboard = document.getElementById('artboard');
-  const preset = document.getElementById('preset');
-  const colorInputs = Object.keys(cssVariables);
-
-  function applyColors(colors) {
-    for (const id of colorInputs) {
-      const value = colors[id];
-      document.getElementById(id).value = value;
-      artboard.style.setProperty(cssVariables[id], value);
+  :root {
+    --bg: #f3f5f1;
+    --panel: #ffffff;
+    --ink: #1f2a24;
+    --muted: #64716a;
+    --line: #dde2db;
+    --field: #eef1ec;
+    --accent: #2f5d46;
+    --accent-ink: #ffffff;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141916;
+      --panel: #1c231f;
+      --ink: #e7ede8;
+      --muted: #97a59c;
+      --line: #2c3530;
+      --field: #252d28;
+      --accent: #84c9a3;
+      --accent-ink: #0e1a13;
     }
   }
+  :root[data-theme="dark"] {
+    --bg: #141916;
+    --panel: #1c231f;
+    --ink: #e7ede8;
+    --muted: #97a59c;
+    --line: #2c3530;
+    --field: #252d28;
+    --accent: #84c9a3;
+    --accent-ink: #0e1a13;
+  }
+  html {
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+    height: 100%;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  .app {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 16px 16px 8px;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .stage {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+  }
+  .stage canvas {
+    width: 100%;
+    max-width: 460px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 12px 32px rgba(0, 0, 0, 0.12);
+    background: #fff;
+    cursor: grab;
+    touch-action: auto;
+  }
+  .stage canvas.dragging { cursor: grabbing; }
+  .hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+  }
+  .panel { display: grid; gap: 12px; align-content: start; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip, .btn {
+    font: inherit;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 9px 16px;
+    cursor: pointer;
+    min-height: 40px;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .chip:focus-visible, .btn:focus-visible, summary:focus-visible,
+  input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  details.group {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  details.group summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  details.group summary::-webkit-details-marker { display: none; }
+  details.group summary::after {
+    content: "+";
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  details.group[open] summary::after { content: "–"; }
+  .fields {
+    padding: 0 16px 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 14px;
+  }
+  .field { grid-column: span 2; display: grid; gap: 6px; }
+  .field-color, .field-check { grid-column: span 1; }
+  .field[hidden] { display: none; }
+  .field label {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .field output { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .field input[type="text"], .field select {
+    width: 100%;
+    font: inherit;
+    color: var(--ink);
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-height: 42px;
+  }
+  .field input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .field input[type="color"] {
+    width: 100%;
+    height: 42px;
+    padding: 3px;
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .field-check label.switch {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    min-height: 42px;
+    color: var(--ink);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .field-check input { width: 20px; height: 20px; accent-color: var(--accent); }
+  .field-photo { display: grid; gap: 8px; }
+  .actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .actions .inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    gap: 8px;
+  }
+  .actions .btn-primary { flex: 1; min-height: 46px; font-size: 16px; }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    z-index: 20;
+    max-width: 90vw;
+  }
+  .toast[hidden] { display: none; }
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(0, 0, 0, 0.72);
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    overflow: auto;
+  }
+  .overlay[hidden] { display: none; }
+  .overlay .sheet {
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 16px;
+    max-width: 440px;
+    width: 100%;
+    display: grid;
+    gap: 12px;
+  }
+  .overlay img { width: 100%; height: auto; border-radius: 6px; }
+  .overlay p { margin: 0; color: var(--muted); font-size: 14px; }
+  @media (min-width: 860px) {
+    .app {
+      grid-template-columns: minmax(340px, 460px) minmax(0, 1fr);
+      align-items: start;
+      gap: 24px;
+    }
+    header { grid-column: 1 / -1; }
+    .stage {
+      position: sticky;
+      top: calc(16px + env(safe-area-inset-top, 0px));
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Cartão de pássaro</h1>
+    <p>Sua foto com moldura de foto revelada, pronta para o Instagram.</p>
+  </header>
 
-  preset.addEventListener('change', () => {
-    if (preset.value !== 'custom') applyColors(palettes[preset.value]);
-  });
+  <section class="stage">
+    <canvas id="canvas" width="1080" height="1350" aria-label="Prévia do cartão"></canvas>
+    <p class="hint">No computador, arraste a foto na prévia para reenquadrar. No celular, use os controles de foto.</p>
+  </section>
 
-  for (const id of colorInputs) {
-    document.getElementById(id).addEventListener('input', event => {
-      const input = event.currentTarget;
-      artboard.style.setProperty(cssVariables[id], input.value);
-      preset.value = 'custom';
+  <section class="panel">
+    <div class="chips" id="presets"></div>
+    <div id="sections"></div>
+    <div class="chips">
+      <button class="btn" id="reset" type="button">Restaurar tudo</button>
+    </div>
+  </section>
+</div>
+
+<div class="actions">
+  <div class="inner">
+    <button class="btn btn-primary" id="save" type="button">Salvar imagem</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet">
+    <img id="result" alt="Imagem pronta">
+    <p>Pressione e segure a imagem (celular) ou clique com o botão direito (computador) para salvar.</p>
+    <button class="btn btn-primary" id="close-overlay" type="button">Fechar</button>
+  </div>
+</div>
+
+<script>
+  const FORMATS = { "4:5": [1080, 1350], "1:1": [1080, 1080], "9:16": [1080, 1920] };
+  const RATIOS = { "1:1": 1, "4:5": 0.8, "4:3": 4 / 3, "3:2": 1.5 };
+  const FONTS = {
+    "Caveat": "cursive",
+    "Patrick Hand": "cursive",
+    "Fraunces": "serif",
+    "Playfair Display": "serif",
+    "DM Sans": "sans-serif",
+    "Special Elite": "\"Courier New\", monospace"
+  };
+  const FONT_OPTIONS = Object.keys(FONTS).map((name) => [name, name]);
+
+  const DEFAULTS = {
+    preset: "dia",
+    format: "4:5",
+    bg1: "#dde8d5",
+    gradient: false,
+    bg2: "#f4f1e6",
+    grain: 35,
+    frame: "#ffffff",
+    framePad: 38,
+    bottomBorder: 210,
+    cardWidth: 80,
+    tilt: -3,
+    shadow: 45,
+    shift: 0,
+    photoRatio: "1:1",
+    zoom: 100,
+    focusX: 50,
+    focusY: 50,
+    tone: "#ffb347",
+    toneAmount: 0,
+    textMode: "frame",
+    align: "center",
+    name: "Quero-quero",
+    nameFont: "Caveat",
+    nameSize: 96,
+    nameColor: "#2b3a2e",
+    nameBold: true,
+    nameItalic: false,
+    sci: "Vanellus chilensis",
+    sciFont: "Fraunces",
+    sciSize: 42,
+    sciColor: "#5f7262",
+    sciItalic: true,
+    sciBold: false,
+    label: "Pássaro do dia",
+    labelStyle: "tape",
+    labelFont: "Patrick Hand",
+    labelSize: 46,
+    labelColor: "#3d3417",
+    labelBg: "#f1d68a",
+    footer: "08/10/2026"
+  };
+
+  const STYLE_KEYS = [
+    "bg1", "gradient", "bg2", "frame", "tilt", "shadow",
+    "nameFont", "nameSize", "nameColor", "nameBold", "nameItalic",
+    "sciFont", "sciSize", "sciColor", "sciItalic", "sciBold",
+    "label", "labelStyle", "labelFont", "labelSize", "labelColor", "labelBg"
+  ];
+  const PHOTO_KEYS = ["zoom", "focusX", "focusY"];
+  const CONTENT_KEYS = ["name", "sci", "footer"];
+
+  const PRESETS = {
+    dia: {
+      title: "Pássaro do dia",
+      values: {}
+    },
+    primeira: {
+      title: "Primeira captura",
+      values: {
+        bg1: "#f4e2d3",
+        tilt: 2.5,
+        label: "Primeira captura",
+        labelStyle: "pill",
+        labelFont: "Fraunces",
+        labelBg: "#8c5a45",
+        labelColor: "#fff6ee",
+        nameColor: "#4a2f22",
+        sciColor: "#8a6b5a"
+      }
+    },
+    classico: {
+      title: "Clássico",
+      values: {
+        bg1: "#e6ebf0",
+        tilt: 0,
+        shadow: 30,
+        label: "Pássaro do dia",
+        labelStyle: "text",
+        labelFont: "Playfair Display",
+        labelColor: "#33414f",
+        nameFont: "Playfair Display",
+        nameBold: false,
+        nameSize: 84,
+        nameColor: "#25303a",
+        sciFont: "Playfair Display",
+        sciColor: "#5d6b78"
+      }
+    }
+  };
+
+  const SECTIONS = [
+    {
+      title: "Foto",
+      open: true,
+      fields: [
+        { type: "photo" },
+        { key: "zoom", type: "range", label: "Zoom", min: 100, max: 500, unit: "%" },
+        { key: "focusX", type: "range", label: "Enquadramento horizontal", min: 0, max: 100, unit: "%" },
+        { key: "focusY", type: "range", label: "Enquadramento vertical", min: 0, max: 100, unit: "%" },
+        {
+          key: "photoRatio",
+          type: "select",
+          label: "Proporção da foto",
+          options: [["1:1", "Quadrada 1:1"], ["4:5", "Vertical 4:5"], ["4:3", "Horizontal 4:3"], ["3:2", "Horizontal 3:2"]]
+        },
+        { key: "tone", type: "color", label: "Cor do tom" },
+        { key: "toneAmount", type: "range", label: "Intensidade do tom", min: 0, max: 100, unit: "%" }
+      ]
+    },
+    {
+      title: "Textos",
+      open: true,
+      fields: [
+        { key: "label", type: "text", label: "Chamada" },
+        { key: "name", type: "text", label: "Nome da espécie" },
+        { key: "sci", type: "text", label: "Nome científico" },
+        { key: "footer", type: "text", label: "Rodapé (data, @perfil, local)" },
+        {
+          key: "textMode",
+          type: "select",
+          label: "Onde ficam os nomes",
+          options: [["frame", "Dentro da moldura"], ["bg", "No fundo, abaixo do cartão"]]
+        },
+        {
+          key: "align",
+          type: "select",
+          label: "Alinhamento dos nomes",
+          options: [["center", "Centralizado"], ["left", "À esquerda"]]
+        }
+      ]
+    },
+    {
+      title: "Fontes e cores dos textos",
+      fields: [
+        { key: "nameFont", type: "select", label: "Fonte do nome", options: FONT_OPTIONS },
+        { key: "nameSize", type: "range", label: "Tamanho do nome", min: 40, max: 180 },
+        { key: "nameColor", type: "color", label: "Cor do nome" },
+        { key: "nameBold", type: "check", label: "Negrito" },
+        { key: "nameItalic", type: "check", label: "Itálico" },
+        { key: "sciFont", type: "select", label: "Fonte do nome científico", options: FONT_OPTIONS },
+        { key: "sciSize", type: "range", label: "Tamanho do nome científico", min: 20, max: 100 },
+        { key: "sciColor", type: "color", label: "Cor do científico e rodapé" },
+        { key: "sciItalic", type: "check", label: "Itálico" },
+        { key: "sciBold", type: "check", label: "Negrito" },
+        {
+          key: "labelStyle",
+          type: "select",
+          label: "Estilo da chamada",
+          options: [["tape", "Fita adesiva na foto"], ["pill", "Selo no topo"], ["text", "Só texto no topo"]]
+        },
+        { key: "labelFont", type: "select", label: "Fonte da chamada", options: FONT_OPTIONS },
+        { key: "labelSize", type: "range", label: "Tamanho da chamada", min: 24, max: 100 },
+        { key: "labelColor", type: "color", label: "Cor do texto da chamada" },
+        { key: "labelBg", type: "color", label: "Cor da fita ou selo" }
+      ]
+    },
+    {
+      title: "Cartão e moldura",
+      fields: [
+        { key: "frame", type: "color", label: "Cor da moldura" },
+        { key: "framePad", type: "range", label: "Espessura da moldura", min: 16, max: 100 },
+        {
+          key: "bottomBorder",
+          type: "range",
+          label: "Borda de baixo",
+          min: 100,
+          max: 340,
+          showIf: (s) => s.textMode === "frame"
+        },
+        { key: "cardWidth", type: "range", label: "Largura do cartão", min: 55, max: 96, unit: "%" },
+        { key: "tilt", type: "range", label: "Inclinação", min: -12, max: 12, step: 0.5, unit: "°" },
+        { key: "shadow", type: "range", label: "Sombra", min: 0, max: 100 },
+        { key: "shift", type: "range", label: "Subir ou descer o cartão", min: -300, max: 300 }
+      ]
+    },
+    {
+      title: "Fundo e formato",
+      fields: [
+        {
+          key: "format",
+          type: "select",
+          label: "Formato",
+          options: [
+            ["4:5", "Feed vertical 4:5 (1080×1350)"],
+            ["1:1", "Quadrado 1:1 (1080×1080)"],
+            ["9:16", "Stories 9:16 (1080×1920)"]
+          ]
+        },
+        { key: "bg1", type: "color", label: "Cor do fundo" },
+        { key: "gradient", type: "check", label: "Usar degradê" },
+        { key: "bg2", type: "color", label: "Segunda cor", showIf: (s) => s.gradient },
+        { key: "grain", type: "range", label: "Textura de papel", min: 0, max: 100 }
+      ]
+    }
+  ];
+
+  const STORAGE_KEY = "estudio-passaro-v1";
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  let state = { ...DEFAULTS };
+  let photo = null;
+  let customPhoto = false;
+  let downloads = null;
+  let raf = 0;
+  let saveTimer = 0;
+  let grainPattern = null;
+  let photoScaleOnCanvas = 1;
+  const triedFonts = new Set();
+  const refreshers = [];
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (saved && typeof saved === "object") {
+      PHOTO_KEYS.forEach((key) => delete saved[key]);
+      state = { ...DEFAULTS, ...saved };
+    }
+  } catch (err) {}
+
+  function persist() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try {
+        const copy = { ...state };
+        PHOTO_KEYS.forEach((key) => delete copy[key]);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+      } catch (err) {}
+    }, 300);
+  }
+
+  function schedule() {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(draw);
+  }
+
+  function setValue(key, value) {
+    state[key] = value;
+    refresh();
+    schedule();
+    persist();
+  }
+
+  function refresh() {
+    refreshers.forEach((fn) => fn());
+  }
+
+  function buildField(f) {
+    const el = document.createElement("div");
+    el.className = `field field-${f.type}`;
+    const id = `f-${f.key || f.type}`;
+
+    if (f.type === "photo") {
+      el.innerHTML = `
+        <button class="btn btn-primary" type="button">Escolher outra foto</button>
+        <input type="file" accept="image/*" hidden>`;
+      const button = el.querySelector("button");
+      const input = el.querySelector("input");
+      button.addEventListener("click", () => input.click());
+      input.addEventListener("change", () => {
+        if (input.files[0]) loadFile(input.files[0]);
+        input.value = "";
+      });
+      return el;
+    }
+
+    if (f.type === "range") {
+      el.innerHTML = `<label for="${id}"><span>${f.label}</span><output></output></label>
+        <input id="${id}" type="range" min="${f.min}" max="${f.max}" step="${f.step || 1}">`;
+      const input = el.querySelector("input");
+      const out = el.querySelector("output");
+      input.addEventListener("input", () => setValue(f.key, Number(input.value)));
+      refreshers.push(() => {
+        input.value = state[f.key];
+        out.textContent = `${state[f.key]}${f.unit || ""}`;
+      });
+    }
+
+    if (f.type === "text") {
+      el.innerHTML = `<label for="${id}"><span>${f.label}</span></label><input id="${id}" type="text" autocomplete="off">`;
+      const input = el.querySelector("input");
+      input.addEventListener("input", () => setValue(f.key, input.value));
+      refreshers.push(() => {
+        if (input.value !== state[f.key]) input.value = state[f.key];
+      });
+    }
+
+    if (f.type === "color") {
+      el.innerHTML = `<label for="${id}"><span>${f.label}</span></label><input id="${id}" type="color">`;
+      const input = el.querySelector("input");
+      input.addEventListener("input", () => setValue(f.key, input.value));
+      refreshers.push(() => {
+        if (input.value !== state[f.key]) input.value = state[f.key];
+      });
+    }
+
+    if (f.type === "select") {
+      const options = f.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
+      el.innerHTML = `<label for="${id}"><span>${f.label}</span></label><select id="${id}">${options}</select>`;
+      const select = el.querySelector("select");
+      select.addEventListener("change", () => setValue(f.key, select.value));
+      refreshers.push(() => {
+        select.value = state[f.key];
+      });
+    }
+
+    if (f.type === "check") {
+      el.innerHTML = `<label class="switch" for="${id}"><input id="${id}" type="checkbox"><span>${f.label}</span></label>`;
+      const input = el.querySelector("input");
+      input.addEventListener("change", () => setValue(f.key, input.checked));
+      refreshers.push(() => {
+        input.checked = !!state[f.key];
+      });
+    }
+
+    if (f.showIf) {
+      refreshers.push(() => {
+        el.hidden = !f.showIf(state);
+      });
+    }
+    return el;
+  }
+
+  function buildUI() {
+    const host = document.getElementById("sections");
+    SECTIONS.forEach((section) => {
+      const details = document.createElement("details");
+      details.className = "group";
+      details.open = !!section.open;
+      const summary = document.createElement("summary");
+      summary.textContent = section.title;
+      const fields = document.createElement("div");
+      fields.className = "fields";
+      section.fields.forEach((f) => fields.appendChild(buildField(f)));
+      details.append(summary, fields);
+      host.appendChild(details);
+    });
+
+    const presetHost = document.getElementById("presets");
+    Object.entries(PRESETS).forEach(([id, preset]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.textContent = preset.title;
+      chip.addEventListener("click", () => applyPreset(id));
+      presetHost.appendChild(chip);
+      refreshers.push(() => chip.setAttribute("aria-pressed", String(state.preset === id)));
     });
   }
 
-  applyColors(palettes[preset.value]);
-});
+  function applyPreset(id) {
+    const base = {};
+    STYLE_KEYS.forEach((key) => {
+      base[key] = DEFAULTS[key];
+    });
+    Object.assign(state, base, PRESETS[id].values, { preset: id });
+    refresh();
+    schedule();
+    persist();
+  }
+
+  function resetAll() {
+    state = { ...DEFAULTS };
+    if (customPhoto) Object.assign(state, { zoom: 100, focusX: 50, focusY: 50 });
+    refresh();
+    schedule();
+    persist();
+  }
+
+  function fontStr(family, size, bold, italic) {
+    return `${italic ? "italic " : ""}${bold ? 700 : 400} ${size}px "${family}", ${FONTS[family]}`;
+  }
+
+  function usedFonts() {
+    return [
+      fontStr(state.nameFont, 40, state.nameBold, state.nameItalic),
+      fontStr(state.sciFont, 40, state.sciBold, state.sciItalic),
+      fontStr(state.labelFont, 40, false, false)
+    ];
+  }
+
+  function ensureFonts() {
+    const pending = usedFonts().filter((f) => !triedFonts.has(f) && !document.fonts.check(f));
+    pending.forEach((f) => triedFonts.add(f));
+    if (pending.length) {
+      Promise.all(pending.map((f) => document.fonts.load(f).catch(() => {}))).then(schedule);
+    }
+  }
+
+  function preloadAllFonts() {
+    const jobs = [];
+    Object.keys(FONTS).forEach((family) => {
+      [false, true].forEach((bold) => {
+        [false, true].forEach((italic) => {
+          jobs.push(document.fonts.load(fontStr(family, 40, bold, italic)).catch(() => {}));
+        });
+      });
+    });
+    Promise.all(jobs).then(schedule);
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function fitSize(text, family, size, bold, italic, maxW) {
+    ctx.font = fontStr(family, size, bold, italic);
+    const width = ctx.measureText(text).width;
+    return width > maxW ? Math.max(12, (size * maxW) / width) : size;
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function getGrain() {
+    if (grainPattern) return grainPattern;
+    const tile = document.createElement("canvas");
+    tile.width = tile.height = 200;
+    const g = tile.getContext("2d");
+    const data = g.createImageData(200, 200);
+    for (let i = 0; i < data.data.length; i += 4) {
+      const v = Math.random() * 255;
+      data.data[i] = data.data[i + 1] = data.data[i + 2] = v;
+      data.data[i + 3] = 255;
+    }
+    g.putImageData(data, 0, 0);
+    grainPattern = ctx.createPattern(tile, "repeat");
+    return grainPattern;
+  }
+
+  function textBlockHeight() {
+    const hasName = state.name.trim() !== "";
+    const hasSci = state.sci.trim() !== "";
+    return (hasName ? state.nameSize * 1.2 : 0) + (hasName && hasSci ? 8 : 0) + (hasSci ? state.sciSize * 1.3 : 0);
+  }
+
+  function drawTexts(top, left, boxW) {
+    const s = state;
+    const x = s.align === "left" ? left : left + boxW / 2;
+    ctx.textAlign = s.align;
+    ctx.textBaseline = "middle";
+    let y = top;
+    if (s.name.trim()) {
+      const size = fitSize(s.name, s.nameFont, s.nameSize, s.nameBold, s.nameItalic, boxW);
+      ctx.font = fontStr(s.nameFont, size, s.nameBold, s.nameItalic);
+      ctx.fillStyle = s.nameColor;
+      ctx.fillText(s.name, x, y + s.nameSize * 0.6);
+      y += s.nameSize * 1.2 + 8;
+    }
+    if (s.sci.trim()) {
+      const size = fitSize(s.sci, s.sciFont, s.sciSize, s.sciBold, s.sciItalic, boxW);
+      ctx.font = fontStr(s.sciFont, size, s.sciBold, s.sciItalic);
+      ctx.fillStyle = s.sciColor;
+      ctx.fillText(s.sci, x, y + s.sciSize * 0.65);
+    }
+  }
+
+  function drawPhoto(px, py, pw, ph, layoutK) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(px, py, pw, ph);
+    ctx.clip();
+    if (photo) {
+      const iw = photo.naturalWidth || photo.width;
+      const ih = photo.naturalHeight || photo.height;
+      const scale = (Math.max(pw / iw, ph / ih) * state.zoom) / 100;
+      const vw = pw / scale;
+      const vh = ph / scale;
+      const sx = clamp((state.focusX / 100) * iw - vw / 2, 0, iw - vw);
+      const sy = clamp((state.focusY / 100) * ih - vh / 2, 0, ih - vh);
+      ctx.drawImage(photo, sx, sy, vw, vh, px, py, pw, ph);
+      photoScaleOnCanvas = scale * layoutK;
+      if (state.toneAmount > 0) {
+        ctx.globalCompositeOperation = "soft-light";
+        ctx.globalAlpha = state.toneAmount / 100;
+        ctx.fillStyle = state.tone;
+        ctx.fillRect(px, py, pw, ph);
+      }
+    } else {
+      ctx.fillStyle = "#d7dcd6";
+      ctx.fillRect(px, py, pw, ph);
+      ctx.fillStyle = "#7d8a82";
+      ctx.font = fontStr("DM Sans", 40, false, false);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Escolha uma foto", px + pw / 2, py + ph / 2);
+    }
+    ctx.restore();
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.14)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px, py, pw, ph);
+  }
+
+  function drawTape(cardTop) {
+    const s = state;
+    const text = s.label.trim();
+    ctx.font = fontStr(s.labelFont, s.labelSize, false, false);
+    const size = fitSize(text, s.labelFont, s.labelSize, false, false, 560);
+    ctx.font = fontStr(s.labelFont, size, false, false);
+    const textW = ctx.measureText(text).width;
+    const w = Math.max(300, textW + 90);
+    const h = s.labelSize * 1.9;
+    ctx.save();
+    ctx.translate(0, cardTop + 6);
+    ctx.rotate((-2 * Math.PI) / 180);
+    ctx.shadowColor = "rgba(0, 0, 0, 0.18)";
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 3;
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = s.labelBg;
+    const n = Math.max(2, Math.round(h / 9));
+    ctx.beginPath();
+    ctx.moveTo(-w / 2, -h / 2);
+    ctx.lineTo(w / 2, -h / 2);
+    for (let i = 1; i <= n; i++) ctx.lineTo(w / 2 + (i % 2 ? 6 : 0), -h / 2 + (h * i) / n);
+    ctx.lineTo(-w / 2, h / 2);
+    for (let i = n - 1; i >= 0; i--) ctx.lineTo(-w / 2 - (i % 2 ? 6 : 0), -h / 2 + (h * i) / n);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowColor = "transparent";
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = s.labelColor;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 0, 2);
+    ctx.restore();
+  }
+
+  function drawTopLabel(W, H) {
+    const s = state;
+    const text = s.label.trim();
+    const size = fitSize(text, s.labelFont, s.labelSize, false, false, W * 0.8);
+    ctx.font = fontStr(s.labelFont, size, false, false);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const y = H * 0.085;
+    if (s.labelStyle === "pill") {
+      const w = ctx.measureText(text).width + 72;
+      const h = size * 1.9;
+      ctx.fillStyle = s.labelBg;
+      roundRect(W / 2 - w / 2, y - h / 2, w, h, h / 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = s.labelColor;
+    ctx.fillText(text, W / 2, y + 2);
+  }
+
+  function draw() {
+    ensureFonts();
+    const s = state;
+    const [W, H] = FORMATS[s.format];
+    if (canvas.width !== W || canvas.height !== H) {
+      canvas.width = W;
+      canvas.height = H;
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.shadowColor = "transparent";
+
+    if (s.gradient) {
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, s.bg1);
+      grad.addColorStop(1, s.bg2);
+      ctx.fillStyle = grad;
+    } else {
+      ctx.fillStyle = s.bg1;
+    }
+    ctx.fillRect(0, 0, W, H);
+
+    if (s.grain > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = "soft-light";
+      ctx.globalAlpha = (s.grain / 100) * 0.7;
+      ctx.fillStyle = getGrain();
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    }
+
+    const hasLabel = s.label.trim() !== "";
+    const inFrame = s.textMode === "frame";
+    const pad = s.framePad;
+    const cw = (W * s.cardWidth) / 100;
+    const pw = cw - pad * 2;
+    const ph = pw / RATIOS[s.photoRatio];
+    const bottom = inFrame ? s.bottomBorder : pad;
+    const ch = pad + ph + bottom;
+    const gap = 44;
+    const outsideH = !inFrame ? gap + textBlockHeight() : 0;
+    const totalH = ch + outsideH;
+
+    const reserveTop = hasLabel && s.labelStyle !== "tape" ? H * 0.15 : H * 0.07;
+    const reserveBottom = s.footer.trim() ? H * 0.085 : H * 0.05;
+    const avail = H - reserveTop - reserveBottom;
+    const k = Math.min(1, avail / totalH);
+    const centerY = reserveTop + avail / 2 + s.shift;
+    const top = -totalH / 2;
+
+    ctx.save();
+    ctx.translate(W / 2, centerY);
+    ctx.scale(k, k);
+
+    ctx.save();
+    ctx.translate(0, top + ch / 2);
+    ctx.rotate((s.tilt * Math.PI) / 180);
+    const x0 = -cw / 2;
+    const y0 = -ch / 2;
+    ctx.shadowColor = `rgba(0, 0, 0, ${(s.shadow / 100) * 0.38})`;
+    ctx.shadowBlur = 42;
+    ctx.shadowOffsetY = 18;
+    ctx.fillStyle = s.frame;
+    roundRect(x0, y0, cw, ch, 6);
+    ctx.fill();
+    ctx.shadowColor = "transparent";
+    drawPhoto(x0 + pad, y0 + pad, pw, ph, k);
+    if (inFrame) {
+      const th = textBlockHeight();
+      const areaTop = y0 + pad + ph;
+      drawTexts(areaTop + (bottom - th) / 2, x0 + pad, pw);
+    }
+    if (hasLabel && s.labelStyle === "tape") drawTape(y0);
+    ctx.restore();
+
+    if (!inFrame) drawTexts(top + ch + gap, -cw / 2, cw);
+    ctx.restore();
+
+    if (hasLabel && s.labelStyle !== "tape") drawTopLabel(W, H);
+
+    if (s.footer.trim()) {
+      const size = fitSize(s.footer, s.sciFont, 30, false, false, W * 0.8);
+      ctx.font = fontStr(s.sciFont, size, false, false);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = s.sciColor;
+      ctx.fillText(s.footer, W / 2, H - H * 0.045);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function loadFile(file) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const max = 2400;
+      const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.naturalWidth * k);
+      c.height = Math.round(img.naturalHeight * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      photo = c;
+      customPhoto = true;
+      Object.assign(state, { zoom: 100, focusX: 50, focusY: 50 });
+      refresh();
+      schedule();
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      toast("Não consegui abrir essa imagem.");
+    };
+    img.src = url;
+  }
+
+  let toastTimer = 0;
+  function toast(message) {
+    const el = document.getElementById("toast");
+    el.textContent = message;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      el.hidden = true;
+    }, 2600);
+  }
+
+  function slug(text) {
+    return text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function showResult(blob) {
+    const img = document.getElementById("result");
+    if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
+    img.src = URL.createObjectURL(blob);
+    document.getElementById("overlay").hidden = false;
+  }
+
+  async function exportImage() {
+    await Promise.all(usedFonts().map((f) => document.fonts.load(f).catch(() => {})));
+    draw();
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    if (!blob) {
+      toast("Não foi possível gerar a imagem.");
+      return;
+    }
+    if (downloads) {
+      const name = [slug(state.label), slug(state.name)].filter(Boolean).join("-") || "passaro";
+      try {
+        await downloads.save({ filename: `${name}.png`, data: blob });
+        toast("Imagem salva.");
+        return;
+      } catch (err) {
+        if (err && err.code === "declined") return;
+      }
+    }
+    showResult(blob);
+  }
+
+  let drag = null;
+  canvas.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse" || !photo) return;
+    drag = { x: e.clientX, y: e.clientY, fx: state.focusX, fy: state.focusY };
+    canvas.setPointerCapture(e.pointerId);
+    canvas.classList.add("dragging");
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const rect = canvas.getBoundingClientRect();
+    const toCanvas = canvas.width / rect.width;
+    const iw = photo.naturalWidth || photo.width;
+    const ih = photo.naturalHeight || photo.height;
+    const dx = ((e.clientX - drag.x) * toCanvas) / photoScaleOnCanvas;
+    const dy = ((e.clientY - drag.y) * toCanvas) / photoScaleOnCanvas;
+    state.focusX = Math.round(clamp(drag.fx - (dx / iw) * 100, 0, 100));
+    state.focusY = Math.round(clamp(drag.fy - (dy / ih) * 100, 0, 100));
+    refresh();
+    schedule();
+  });
+  const endDrag = () => {
+    drag = null;
+    canvas.classList.remove("dragging");
+  };
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+
+  canvas.addEventListener("dragover", (e) => e.preventDefault());
+  canvas.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) loadFile(file);
+  });
+
+  document.getElementById("save").addEventListener("click", exportImage);
+  document.getElementById("reset").addEventListener("click", resetAll);
+  document.getElementById("close-overlay").addEventListener("click", () => {
+    document.getElementById("overlay").hidden = true;
+  });
+  document.getElementById("overlay").addEventListener("click", (e) => {
+    if (e.target.id === "overlay") e.currentTarget.hidden = true;
+  });
+
+  buildUI();
+  refresh();
+  draw();
+
+  const fontsLink = document.getElementById("fonts-css");
+  if (fontsLink.sheet) preloadAllFonts();
+  else fontsLink.addEventListener("load", preloadAllFonts);
+  document.fonts.ready.then(schedule);
+
+  if (window.claude && window.claude.use) {
+    window.claude.use("downloads").then((d) => {
+      downloads = d;
+    }).catch(() => {});
+  }
 </script>
-</head>
-<body>
-<header><h1>Diário de Aves <span style="color:#69765b">/ editor</span></h1><p>Monte seu registro, personalize o visual e exporte a arte para o Instagram.</p></header>
-<main class="app">
-<aside class="panel">
-  <h2>Personalize sua publicação</h2>
-    <div class="section">
-        <label for="series">Tipo de registro</label>
-            <select id="series"><option value="PÁSSARO DO DIA">Pássaro do dia</option><option value="FOTOGRAFIA">Fotografia</option><option value="PRIMEIRA CAPTURA">Primeira captura</option><option value="REGISTRO ESPECIAL">Registro especial</option><option value="custom">Texto personalizado…</option></select>
-                <div id="customSeriesWrap" class="hidden"><label for="customSeries">Nome da série</label><input id="customSeries" type="text" value="PÁSSARO DO DIA"></div>
-                    <div class="two">
-                          <div><label for="number">Número do registro</label><input id="number" type="text" value="001"></div>
-                                <div><label for="date">Data</label><input id="date" type="date" value="2026-10-08"></div>
-                                    </div>
-                                        <label for="bird">Nome popular / título</label><input id="bird" type="text" value="Quero-quero">
-                                            <label for="scientific">Nome científico</label><input id="scientificInput" type="text" value="Vanellus chilensis">
-                                                <label for="captionInput">Legenda curta (opcional)</label><textarea id="captionInput" placeholder="Ex.: Primeiro registro no parque…"></textarea>
-                                                    <label for="photoUpload">Sua fotografia</label><input id="photoUpload" type="file" accept="image/*">
-                                                        <div class="actions"><button id="removePhoto">Remover foto</button><button id="reset">Restaurar exemplo</button></div>
-                                                          </div>
-                                                            <div class="section">
-                                                                <h2>Estilo e cores</h2>
-                                                                    <label for="preset">Paleta rápida</label><select id="preset"><option value="sage">Verde-sálvia e creme</option><option value="cream">Creme e oliva</option><option value="blue">Azul acinzentado</option><option value="pink">Rosa antigo</option><option value="dark">Verde escuro</option><option value="custom">Personalizada</option></select>
-                                                                        <div class="two"><div><label for="bgColor">Fundo externo</label><input type="color" id="bgColor" value="#e8ebdd"></div><div><label for="paperColor">Papel interno</label><input type="color" id="paperColor" value="#f8f6ef"></div></div>
-                                                                            <div class="two"><div><label for="inkColor">Texto principal</label><input type="color" id="inkColor" value="#343b2d"></div><div><label for="mutedColor">Texto secundário</label><input type="color" id="mutedColor" value="#69765b"></div></div>
-                                                                                <div class="two"><div><label for="lineColor">Linhas / bordas</label><input type="color" id="lineColor" value="#c9cebf"></div><div><label for="frameColor">Moldura da foto</label><input type="color" id="frameColor" value="#ffffff"></div></div>
-                                                                                    <label>Etiqueta do tipo de registro</label>
-                                                                                        <div class="two"><div><label for="labelBg">Fundo da etiqueta</label><input type="color" id="labelBg" value="#e8ebdd"></div><div><label for="labelText">Texto da etiqueta</label><input type="color" id="labelText" value="#69765b"></div></div>
-                                                                                            <div class="two"><div><label for="labelBorder">Borda da etiqueta</label><input type="color" id="labelBorder" value="#c9cebf"></div><div><label for="specialNumberColor">Destaque do número</label><input type="color" id="specialNumberColor" value="#59674c"></div></div>
-                                                                                              </div>
-                                                                                                <div class="section">
-                                                                                                    <h2>Composição</h2>
-                                                                                                        <label for="ratio">Formato da publicação</label><select id="ratio"><option value="4/5">Retrato 4:5 — feed</option><option value="1/1">Quadrado 1:1</option><option value="3/4">Retrato 3:4</option><option value="9/16">Stories 9:16</option></select>
-                                                                                                            <div class="two"><div><label for="outerPad">Margem externa</label><input id="outerPad" type="range" min="1" max="12" value="5.5"></div><div><label for="paperPad">Margem do papel</label><input id="paperPad" type="range" min="2" max="12" value="5"></div></div>
-                                                                                                                <div class="two"><div><label for="framePad">Borda branca da foto</label><input id="framePad" type="range" min="0" max="6" value="1.7"></div><div><label for="photoFit">Enquadramento da foto</label><select id="photoFit"><option value="cover">Preencher quadro</option><option value="contain">Mostrar foto inteira</option></select></div></div>
-                                                                                                                    <label for="titleSize">Tamanho do título</label><input id="titleSize" type="range" min="24" max="70" value="42">
-                                                                                                                        <label for="fontTitle">Fonte do título</label><select id="fontTitle"><option value="Georgia, 'Times New Roman', serif">Serifada clássica</option><option value="'Palatino Linotype', Palatino, serif">Palatino</option><option value="system-ui, sans-serif">Sem serifa</option><option value="monospace">Monoespaçada</option></select>
-                                                                                                                            <div class="checkrow"><input type="checkbox" id="showNumber" checked><label for="showNumber" style="margin:0">Mostrar número</label></div>
-                                                                                                                                <div class="checkrow"><input type="checkbox" id="showDate" checked><label for="showDate" style="margin:0">Mostrar data</label></div>
-                                                                                                                                    <div class="checkrow"><input type="checkbox" id="showScientific" checked><label for="showScientific" style="margin:0">Mostrar nome científico</label></div>
-                                                                                                                                        <div class="checkrow"><input type="checkbox" id="showCaption" checked><label for="showCaption" style="margin:0">Mostrar legenda</label></div>
-                                                                                                                                            <div class="checkrow"><input type="checkbox" id="showBadge" checked><label for="showBadge" style="margin:0">Mostrar etiqueta da série</label></div>
-                                                                                                                                              </div>
-                                                                                                                                                <div class="section">
-                                                                                                                                                    <h2>Exportar</h2>
-                                                                                                                                                        <label for="exportSize">Resolução</label><select id="exportSize"><option value="1080">Instagram — 1080 px</option><option value="1350">Alta resolução — 1350 px</option><option value="1600">Alta resolução — 1600 px</option></select>
-                                                                                                                                                            <div class="actions"><button class="primary" id="download">Exportar PNG</button><button id="downloadSettings">Baixar configurações</button><button id="loadSettings">Carregar configurações</button><input class="hidden" type="file" id="settingsFile" accept="application/json"></div>
-                                                                                                                                                                <p class="hint">A imagem é montada no seu navegador. A fotografia não é enviada para nenhum servidor.</p>
-                                                                                                                                                                  </div>
-                                                                                                                                                                  </aside>
-                                                                                                                                                                  <section class="previewWrap">
-                                                                                                                                                                    <div class="previewHead"><span>Pré-visualização ao vivo</span><span id="previewDimensions">1080 × 1350</span></div>
-                                                                                                                                                                      <div class="stage"><div id="artboard">
-                                                                                                                                                                          <div id="sheet">
-                                                                                                                                                                                <div class="topline"><span id="seriesText" class="hidden">PÁSSARO DO DIA</span></div>
-                                                                                                                                                                                      <div class="photoFrame" id="photoFrame"><img id="photo" class="hidden" alt="Fotografia da ave"><div id="photoPlaceholder" class="photoPlaceholder">Adicione sua fotografia<br>no painel de edição</div></div>
-                                                                                                                                                                                            <div class="info">
-                                                                                                                                                                                                    <div class="labelRow"><div id="badge">PÁSSARO DO DIA</div><div id="specialNumber">N.º 001</div></div>
-                                                                                                                                                                                                            <h2 id="birdName">Quero-quero</h2>
-                                                                                                                                                                                                                    <div id="scientific">Vanellus chilensis</div>
-                                                                                                                                                                                                                            <div class="rule hidden" id="rule"></div>
-                                                                                                                                                                                                                                    <div id="caption"></div>
-                                                                                                                                                                                                                                          </div>
-                                                                                                                                                                                                                                                <div class="bottomline"><span id="dateText">08 OUT. 2026</span></div>
-                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                      </div></div>
-                                                                                                                                                                                                                                                      </section>
-                                                                                                                                                                                                                                                      </main>
-                                                                                                                                                                                                                                                      <script>
-                                                                                                                                                                                                                                                      const $ = id => document.getElementById(id);
-                                                                                                                                                                                                                                                      const photoUpload = $('photoUpload');
-                                                                                                                                                                                                                                                      const photo = $('photo');
-                                                                                                                                                                                                                                                      const photoPlaceholder = $('photoPlaceholder');
-                                                                                                                                                                                                                                                      const photoStatus = document.createElement('p');
-                                                                                                                                                                                                                                                      let uploadedPhotoUrl = null;
-                                                                                                                                                                                                                                                      let loadSequence = 0;
-
-                                                                                                                                                                                                                                                      photoStatus.className = 'hint';
-                                                                                                                                                                                                                                                      photoStatus.setAttribute('role', 'status');
-                                                                                                                                                                                                                                                      photoStatus.setAttribute('aria-live', 'polite');
-                                                                                                                                                                                                                                                      photoStatus.hidden = true;
-                                                                                                                                                                                                                                                      photoUpload.insertAdjacentElement('afterend', photoStatus);
-
-                                                                                                                                                                                                                                                      function setPhotoStatus(message) {
-                                                                                                                                                                                                                                                        photoStatus.textContent = message;
-                                                                                                                                                                                                                                                        photoStatus.hidden = !message;
-                                                                                                                                                                                                                                                      }
-
-                                                                                                                                                                                                                                                      function clearPhoto() {
-                                                                                                                                                                                                                                                        loadSequence += 1;
-                                                                                                                                                                                                                                                        photoUpload.value = '';
-                                                                                                                                                                                                                                                        photo.removeAttribute('src');
-                                                                                                                                                                                                                                                        photo.classList.add('hidden');
-                                                                                                                                                                                                                                                        photoPlaceholder.classList.remove('hidden');
-                                                                                                                                                                                                                                                        setPhotoStatus('');
-                                                                                                                                                                                                                                                        if (uploadedPhotoUrl) {
-                                                                                                                                                                                                                                                          URL.revokeObjectURL(uploadedPhotoUrl);
-                                                                                                                                                                                                                                                          uploadedPhotoUrl = null;
-                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                      }
-
-                                                                                                                                                                                                                                                      photoUpload.addEventListener('change', () => {
-                                                                                                                                                                                                                                                        const file = photoUpload.files?.[0];
-                                                                                                                                                                                                                                                        if (!file) return;
-                                                                                                                                                                                                                                                        const sequence = ++loadSequence;
-
-                                                                                                                                                                                                                                                        if (file.type && !file.type.startsWith('image/')) {
-                                                                                                                                                                                                                                                          photoUpload.value = '';
-                                                                                                                                                                                                                                                          setPhotoStatus('Selecione um arquivo de imagem válido.');
-                                                                                                                                                                                                                                                          return;
-                                                                                                                                                                                                                                                        }
-
-                                                                                                                                                                                                                                                        let nextPhotoUrl;
-                                                                                                                                                                                                                                                        try {
-                                                                                                                                                                                                                                                          nextPhotoUrl = URL.createObjectURL(file);
-                                                                                                                                                                                                                                                        } catch (error) {
-                                                                                                                                                                                                                                                          setPhotoStatus('Não foi possível abrir a fotografia selecionada.');
-                                                                                                                                                                                                                                                          console.error('Falha ao abrir a fotografia selecionada.', error);
-                                                                                                                                                                                                                                                          return;
-                                                                                                                                                                                                                                                        }
-
-                                                                                                                                                                                                                                                        const imageCheck = new Image();
-                                                                                                                                                                                                                                                        imageCheck.onload = () => {
-                                                                                                                                                                                                                                                          if (sequence !== loadSequence) {
-                                                                                                                                                                                                                                                            URL.revokeObjectURL(nextPhotoUrl);
-                                                                                                                                                                                                                                                            return;
-                                                                                                                                                                                                                                                          }
-
-                                                                                                                                                                                                                                                          const previousPhotoUrl = uploadedPhotoUrl;
-                                                                                                                                                                                                                                                          uploadedPhotoUrl = nextPhotoUrl;
-                                                                                                                                                                                                                                                          photo.src = nextPhotoUrl;
-                                                                                                                                                                                                                                                          photo.classList.remove('hidden');
-                                                                                                                                                                                                                                                          photoPlaceholder.classList.add('hidden');
-                                                                                                                                                                                                                                                          $('photoFrame').style.backgroundColor = $('frameColor').value;
-                                                                                                                                                                                                                                                          photo.style.objectFit = $('photoFit').value;
-                                                                                                                                                                                                                                                          setPhotoStatus('');
-                                                                                                                                                                                                                                                          if (previousPhotoUrl) URL.revokeObjectURL(previousPhotoUrl);
-                                                                                                                                                                                                                                                        };
-                                                                                                                                                                                                                                                        imageCheck.onerror = () => {
-                                                                                                                                                                                                                                                          URL.revokeObjectURL(nextPhotoUrl);
-                                                                                                                                                                                                                                                          if (sequence === loadSequence) {
-                                                                                                                                                                                                                                                            photoUpload.value = '';
-                                                                                                                                                                                                                                                            setPhotoStatus('Não foi possível ler essa imagem. Tente outro arquivo.');
-                                                                                                                                                                                                                                                          }
-                                                                                                                                                                                                                                                        };
-                                                                                                                                                                                                                                                        imageCheck.src = nextPhotoUrl;
-                                                                                                                                                                                                                                                      });
-
-                                                                                                                                                                                                                                                      $('photoFit').addEventListener('change', event => {
-                                                                                                                                                                                                                                                        photo.style.objectFit = event.target.value;
-                                                                                                                                                                                                                                                      });
-                                                                                                                                                                                                                                                      $('frameColor').addEventListener('input', event => {
-                                                                                                                                                                                                                                                        $('photoFrame').style.backgroundColor = event.target.value;
-                                                                                                                                                                                                                                                      });
-                                                                                                                                                                                                                                                      $('removePhoto').addEventListener('click', clearPhoto);
-                                                                                                                                                                                                                                                      $('reset').addEventListener('click', () => window.location.reload());
-                                                                                                                                                                                                                                                      </script>
-                                                                                                                                                                                                                                                      </body>
-                                                                                                                                                                                                                                                      </html>
+</body>
+</html>
