@@ -165,7 +165,7 @@
     color: var(--muted);
   }
   .field output { color: var(--ink); font-variant-numeric: tabular-nums; }
-  .field input[type="text"], .field select {
+  .field input[type="text"], .field input[type="number"], .field select {
     width: 100%;
     font: inherit;
     color: var(--ink);
@@ -197,6 +197,13 @@
   }
   .field-check input { width: 20px; height: 20px; accent-color: var(--accent); }
   .field-photo { display: grid; gap: 8px; }
+  .stepper {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) 46px;
+    gap: 8px;
+  }
+  .stepper .btn { padding: 0; font-size: 20px; border-radius: 8px; }
+  .stepper input { text-align: center; }
   .actions {
     position: sticky;
     bottom: 0;
@@ -280,8 +287,9 @@
     <div class="chips" id="presets"></div>
     <div id="sections"></div>
     <div class="chips">
-      <button class="btn" id="reset" type="button">Restaurar tudo</button>
+      <button class="btn" id="reset" type="button">Restaurar visual padrão</button>
     </div>
+    <p class="hint" id="storage-note"></p>
   </section>
 </div>
 
@@ -354,14 +362,27 @@
     labelSize: 46,
     labelColor: "#3d3417",
     labelBg: "#f1d68a",
-    footer: "08/10/2026"
+    footer: "08/10/2026",
+    idShow: true,
+    idNumber: 1,
+    idAuto: false,
+    idPrefix: "Nº",
+    idDigits: "3",
+    idPosition: "corner",
+    idSize: 36,
+    watermark: "@seuperfil",
+    wmPosition: "bottom-right",
+    wmFont: "DM Sans",
+    wmSize: 28,
+    wmOpacity: 60,
+    wmColor: "#5f7262"
   };
 
   const STYLE_KEYS = [
     "bg1", "gradient", "bg2", "frame", "tilt", "shadow",
     "nameFont", "nameSize", "nameColor", "nameBold", "nameItalic",
     "sciFont", "sciSize", "sciColor", "sciItalic", "sciBold",
-    "label", "labelStyle", "labelFont", "labelSize", "labelColor", "labelBg"
+    "label", "labelStyle", "labelFont", "labelSize", "labelColor", "labelBg", "wmColor"
   ];
   const PHOTO_KEYS = ["zoom", "focusX", "focusY"];
   const CONTENT_KEYS = ["name", "sci", "footer"];
@@ -382,7 +403,8 @@
         labelBg: "#8c5a45",
         labelColor: "#fff6ee",
         nameColor: "#4a2f22",
-        sciColor: "#8a6b5a"
+        sciColor: "#8a6b5a",
+        wmColor: "#8a6b5a"
       }
     },
     classico: {
@@ -400,7 +422,8 @@
         nameSize: 84,
         nameColor: "#25303a",
         sciFont: "Playfair Display",
-        sciColor: "#5d6b78"
+        sciColor: "#5d6b78",
+        wmColor: "#5d6b78"
       }
     }
   };
@@ -444,6 +467,54 @@
           label: "Alinhamento dos nomes",
           options: [["center", "Centralizado"], ["left", "À esquerda"]]
         }
+      ]
+    },
+    {
+      title: "Número do pássaro",
+      open: true,
+      fields: [
+        { key: "idShow", type: "check", label: "Mostrar o número" },
+        { key: "idAuto", type: "check", label: "Somar 1 ao salvar" },
+        { key: "idNumber", type: "stepper", label: "Número deste pássaro" },
+        { key: "idPrefix", type: "text", label: "Texto antes do número (ex.: Nº, #, ID)" },
+        {
+          key: "idDigits",
+          type: "select",
+          label: "Zeros à esquerda",
+          options: [["1", "Sem zeros (1)"], ["2", "2 dígitos (01)"], ["3", "3 dígitos (001)"], ["4", "4 dígitos (0001)"]]
+        },
+        {
+          key: "idPosition",
+          type: "select",
+          label: "Onde aparece",
+          options: [
+            ["corner", "Canto da moldura (se os nomes ficam nela)"],
+            ["badge", "Selo sobre a foto"],
+            ["label", "Junto da chamada"]
+          ]
+        },
+        { key: "idSize", type: "range", label: "Tamanho do número", min: 20, max: 80 }
+      ]
+    },
+    {
+      title: "Marca d'água",
+      fields: [
+        { key: "watermark", type: "text", label: "Seu @ (deixe vazio para ocultar)" },
+        {
+          key: "wmPosition",
+          type: "select",
+          label: "Posição",
+          options: [
+            ["bottom-right", "Canto inferior direito"],
+            ["bottom-left", "Canto inferior esquerdo"],
+            ["top-right", "Canto superior direito"],
+            ["top-left", "Canto superior esquerdo"]
+          ]
+        },
+        { key: "wmFont", type: "select", label: "Fonte", options: FONT_OPTIONS },
+        { key: "wmSize", type: "range", label: "Tamanho", min: 18, max: 60 },
+        { key: "wmOpacity", type: "range", label: "Opacidade", min: 10, max: 100, unit: "%" },
+        { key: "wmColor", type: "color", label: "Cor" }
       ]
     },
     {
@@ -534,15 +605,26 @@
     }
   } catch (err) {}
 
+  function setStorageNote(ok) {
+    document.getElementById("storage-note").textContent = ok
+      ? "Configurações, número e @ ficam salvos neste navegador. A foto não é salva."
+      : "Este navegador não permite salvar as configurações; elas valem só até fechar a página.";
+  }
+
+  function writeStorage() {
+    try {
+      const copy = { ...state };
+      PHOTO_KEYS.forEach((key) => delete copy[key]);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+      setStorageNote(true);
+    } catch (err) {
+      setStorageNote(false);
+    }
+  }
+
   function persist() {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      try {
-        const copy = { ...state };
-        PHOTO_KEYS.forEach((key) => delete copy[key]);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
-      } catch (err) {}
-    }, 300);
+    saveTimer = setTimeout(writeStorage, 300);
   }
 
   function schedule() {
@@ -578,6 +660,28 @@
         input.value = "";
       });
       return el;
+    }
+
+    if (f.type === "stepper") {
+      el.innerHTML = `<label for="${id}"><span>${f.label}</span></label>
+        <div class="stepper">
+          <button class="btn" type="button" data-step="-1" aria-label="Diminuir">−</button>
+          <input id="${id}" type="number" inputmode="numeric" min="0" max="99999" step="1">
+          <button class="btn" type="button" data-step="1" aria-label="Aumentar">+</button>
+        </div>`;
+      const input = el.querySelector("input");
+      el.querySelectorAll("button").forEach((b) => {
+        b.addEventListener("click", () => {
+          setValue(f.key, clamp((Number(state[f.key]) || 0) + Number(b.dataset.step), 0, 99999));
+        });
+      });
+      input.addEventListener("input", () => {
+        const n = parseInt(input.value, 10);
+        if (!Number.isNaN(n)) setValue(f.key, clamp(n, 0, 99999));
+      });
+      refreshers.push(() => {
+        if (input.value !== String(state[f.key]) && document.activeElement !== input) input.value = state[f.key];
+      });
     }
 
     if (f.type === "range") {
@@ -676,8 +780,11 @@
   }
 
   function resetAll() {
-    state = { ...DEFAULTS };
-    if (customPhoto) Object.assign(state, { zoom: 100, focusX: 50, focusY: 50 });
+    const keep = {};
+    [...CONTENT_KEYS, "idNumber", "idAuto", "watermark"].forEach((key) => {
+      keep[key] = state[key];
+    });
+    state = { ...DEFAULTS, ...keep };
     refresh();
     schedule();
     persist();
@@ -751,6 +858,58 @@
     return grainPattern;
   }
 
+  function idText() {
+    const digits = Number(state.idDigits) || 1;
+    const number = String(Math.max(0, parseInt(state.idNumber, 10) || 0)).padStart(digits, "0");
+    const prefix = state.idPrefix.trim();
+    return prefix ? `${prefix} ${number}` : number;
+  }
+
+  function labelText() {
+    const base = state.label.trim();
+    if (!(state.idShow && state.idPosition === "label")) return base;
+    return base ? `${base} · ${idText()}` : idText();
+  }
+
+  function drawBadge(px, py, text) {
+    const s = state;
+    ctx.font = fontStr(s.labelFont, s.idSize, false, false);
+    const w = ctx.measureText(text).width + 40;
+    const h = s.idSize * 1.7;
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = s.frame;
+    roundRect(px + 24, py + 24, w, h, h / 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = s.nameColor;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, px + 44, py + 24 + h / 2 + 2);
+  }
+
+  function drawIdCorner(right, centerY, text) {
+    ctx.font = fontStr(state.labelFont, state.idSize, false, false);
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = state.sciColor;
+    ctx.fillText(text, right, centerY);
+  }
+
+  function drawWatermark(W, H) {
+    const s = state;
+    const text = s.watermark.trim();
+    if (!text) return;
+    const size = fitSize(text, s.wmFont, s.wmSize, false, false, W * 0.5);
+    ctx.font = fontStr(s.wmFont, size, false, false);
+    const [vertical, horizontal] = s.wmPosition.split("-");
+    ctx.textAlign = horizontal === "right" ? "right" : "left";
+    ctx.textBaseline = "middle";
+    ctx.globalAlpha = s.wmOpacity / 100;
+    ctx.fillStyle = s.wmColor;
+    ctx.fillText(text, horizontal === "right" ? W - 48 : 48, vertical === "top" ? H * 0.045 : H - H * 0.045);
+    ctx.globalAlpha = 1;
+  }
+
   function textBlockHeight() {
     const hasName = state.name.trim() !== "";
     const hasSci = state.sci.trim() !== "";
@@ -816,7 +975,7 @@
 
   function drawTape(cardTop) {
     const s = state;
-    const text = s.label.trim();
+    const text = labelText();
     ctx.font = fontStr(s.labelFont, s.labelSize, false, false);
     const size = fitSize(text, s.labelFont, s.labelSize, false, false, 560);
     ctx.font = fontStr(s.labelFont, size, false, false);
@@ -851,7 +1010,7 @@
 
   function drawTopLabel(W, H) {
     const s = state;
-    const text = s.label.trim();
+    const text = labelText();
     const size = fitSize(text, s.labelFont, s.labelSize, false, false, W * 0.8);
     ctx.font = fontStr(s.labelFont, size, false, false);
     ctx.textAlign = "center";
@@ -900,7 +1059,7 @@
       ctx.restore();
     }
 
-    const hasLabel = s.label.trim() !== "";
+    const hasLabel = labelText() !== "";
     const inFrame = s.textMode === "frame";
     const pad = s.framePad;
     const cw = (W * s.cardWidth) / 100;
@@ -936,10 +1095,22 @@
     ctx.fill();
     ctx.shadowColor = "transparent";
     drawPhoto(x0 + pad, y0 + pad, pw, ph, k);
+    const idLabel = s.idShow ? idText() : "";
+    const idCorner = idLabel !== "" && s.idPosition === "corner" && inFrame;
+    if (idLabel !== "" && !idCorner && s.idPosition !== "label") drawBadge(x0 + pad, y0 + pad, idLabel);
     if (inFrame) {
       const th = textBlockHeight();
       const areaTop = y0 + pad + ph;
-      drawTexts(areaTop + (bottom - th) / 2, x0 + pad, pw);
+      let boxLeft = x0 + pad;
+      let boxW = pw;
+      if (idCorner) {
+        ctx.font = fontStr(s.labelFont, s.idSize, false, false);
+        const reserve = ctx.measureText(idLabel).width + 24;
+        boxW = Math.max(120, s.align === "left" ? pw - reserve : pw - reserve * 2);
+        if (s.align !== "left") boxLeft += reserve;
+      }
+      drawTexts(areaTop + (bottom - th) / 2, boxLeft, boxW);
+      if (idCorner) drawIdCorner(x0 + cw - pad, areaTop + bottom / 2, idLabel);
     }
     if (hasLabel && s.labelStyle === "tape") drawTape(y0);
     ctx.restore();
@@ -950,7 +1121,7 @@
     if (hasLabel && s.labelStyle !== "tape") drawTopLabel(W, H);
 
     if (s.footer.trim()) {
-      const size = fitSize(s.footer, s.sciFont, 30, false, false, W * 0.8);
+      const size = fitSize(s.footer, s.sciFont, 30, false, false, s.watermark.trim() ? W * 0.45 : W * 0.8);
       ctx.font = fontStr(s.sciFont, size, false, false);
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -959,6 +1130,8 @@
       ctx.fillText(s.footer, W / 2, H - H * 0.045);
       ctx.globalAlpha = 1;
     }
+
+    drawWatermark(W, H);
   }
 
   function loadFile(file) {
@@ -1012,6 +1185,18 @@
     document.getElementById("overlay").hidden = false;
   }
 
+  function afterExport(message) {
+    if (state.idShow && state.idAuto) {
+      state.idNumber = clamp((parseInt(state.idNumber, 10) || 0) + 1, 0, 99999);
+      refresh();
+      schedule();
+      persist();
+      toast(`${message || "Imagem pronta."} Próximo: ${idText()}.`);
+    } else if (message) {
+      toast(message);
+    }
+  }
+
   async function exportImage() {
     await Promise.all(usedFonts().map((f) => document.fonts.load(f).catch(() => {})));
     draw();
@@ -1024,13 +1209,14 @@
       const name = [slug(state.label), slug(state.name)].filter(Boolean).join("-") || "passaro";
       try {
         await downloads.save({ filename: `${name}.png`, data: blob });
-        toast("Imagem salva.");
+        afterExport("Imagem salva.");
         return;
       } catch (err) {
         if (err && err.code === "declined") return;
       }
     }
     showResult(blob);
+    afterExport();
   }
 
   let drag = null;
@@ -1078,7 +1264,12 @@
 
   buildUI();
   refresh();
+  writeStorage();
   draw();
+  window.addEventListener("pagehide", writeStorage);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") writeStorage();
+  });
 
   const fontsLink = document.getElementById("fonts-css");
   if (fontsLink.sheet) preloadAllFonts();
