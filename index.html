@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pássaro do dia</title>
+<title>Cartão de pássaro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link id="fonts-css" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=DM+Sans:ital,wght@0,400..700;1,400..700&family=Fraunces:ital,wght@0,400..700;1,400..700&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Special+Elite&display=swap">
@@ -98,8 +98,14 @@
     font-size: 13px;
     text-align: center;
   }
+  .note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
   .panel { display: grid; gap: 12px; align-content: start; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip, .btn {
     font: inherit;
     border: 1px solid var(--line);
@@ -115,14 +121,21 @@
     color: var(--accent-ink);
     border-color: var(--accent);
   }
-  .btn-primary {
+  .chip-add { border-style: dashed; color: var(--muted); }
+  .btn.small {
+    padding: 7px 13px;
+    min-height: 36px;
+    font-size: 13px;
+  }
+  .btn-primary, .btn-solid {
     background: var(--accent);
     color: var(--accent-ink);
     border-color: var(--accent);
     font-weight: 700;
   }
+  .btn[hidden], .chip[hidden] { display: none; }
   .chip:focus-visible, .btn:focus-visible, summary:focus-visible,
-  input:focus-visible, select:focus-visible {
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
@@ -148,6 +161,7 @@
     color: var(--muted);
   }
   details.group[open] summary::after { content: "–"; }
+  #sections { display: grid; gap: 12px; }
   .fields {
     padding: 0 16px 16px;
     display: grid;
@@ -165,7 +179,7 @@
     color: var(--muted);
   }
   .field output { color: var(--ink); font-variant-numeric: tabular-nums; }
-  .field input[type="text"], .field input[type="number"], .field select {
+  .field input[type="text"], .field input[type="number"], .field select, .field textarea {
     width: 100%;
     font: inherit;
     color: var(--ink);
@@ -196,7 +210,9 @@
     cursor: pointer;
   }
   .field-check input { width: 20px; height: 20px; accent-color: var(--accent); }
-  .field-photo { display: grid; gap: 8px; }
+  .field-photo { display: flex; flex-wrap: wrap; gap: 8px; }
+  .field-photo .btn-primary { flex: 1; }
+  .slots { display: flex; flex-wrap: wrap; gap: 8px; }
   .stepper {
     display: grid;
     grid-template-columns: 46px minmax(0, 1fr) 46px;
@@ -204,6 +220,24 @@
   }
   .stepper .btn { padding: 0; font-size: 20px; border-radius: 8px; }
   .stepper input { text-align: center; }
+  .catalog-list {
+    display: grid;
+    gap: 8px;
+    max-height: 340px;
+    overflow: auto;
+  }
+  .entry {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--field);
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+  .entry-title { font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+  .entry-meta { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+  .entry .row { flex-shrink: 0; flex-wrap: nowrap; }
   .actions {
     position: sticky;
     bottom: 0;
@@ -221,6 +255,7 @@
     gap: 8px;
   }
   .actions .btn-primary { flex: 1; min-height: 46px; font-size: 16px; }
+  .actions .btn-secondary { min-height: 46px; }
   .toast {
     position: fixed;
     left: 50%;
@@ -229,10 +264,11 @@
     background: var(--ink);
     color: var(--bg);
     padding: 10px 16px;
-    border-radius: 999px;
+    border-radius: 14px;
     font-size: 14px;
     z-index: 20;
     max-width: 90vw;
+    text-align: center;
   }
   .toast[hidden] { display: none; }
   .overlay {
@@ -241,7 +277,7 @@
     z-index: 30;
     background: rgba(0, 0, 0, 0.72);
     display: grid;
-    place-items: center;
+    place-items: start center;
     padding: 16px;
     overflow: auto;
   }
@@ -257,6 +293,16 @@
   }
   .overlay img { width: 100%; height: auto; border-radius: 6px; }
   .overlay p { margin: 0; color: var(--muted); font-size: 14px; }
+  .overlay textarea {
+    width: 100%;
+    min-height: 260px;
+    font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace;
+    color: var(--ink);
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px;
+  }
   @media (min-width: 860px) {
     .app {
       grid-template-columns: minmax(340px, 460px) minmax(0, 1fr);
@@ -275,43 +321,44 @@
 <div class="app">
   <header>
     <h1>Cartão de pássaro</h1>
-    <p>Sua foto com moldura de foto revelada, pronta para o Instagram.</p>
+    <p>Suas fotos com moldura de foto revelada, prontas para o Instagram.</p>
   </header>
 
   <section class="stage">
     <canvas id="canvas" width="1080" height="1350" aria-label="Prévia do cartão"></canvas>
-    <p class="hint">No computador, arraste a foto na prévia para reenquadrar. No celular, use os controles de foto.</p>
+    <p class="hint">No computador, arraste a foto na prévia para reenquadrar. Toque numa foto para escolher qual editar.</p>
   </section>
 
   <section class="panel">
     <div class="chips" id="presets"></div>
     <div id="sections"></div>
     <div class="chips">
-      <button class="btn" id="reset" type="button">Restaurar visual padrão</button>
+      <button class="btn" id="reset" type="button">Voltar ao visual do modelo</button>
     </div>
-    <p class="hint" id="storage-note"></p>
+    <p class="note" id="storage-note"></p>
   </section>
 </div>
 
 <div class="actions">
   <div class="inner">
     <button class="btn btn-primary" id="save" type="button">Salvar imagem</button>
+    <button class="btn btn-secondary" id="save-carousel" type="button" hidden>Carrossel</button>
   </div>
 </div>
 
 <div class="toast" id="toast" hidden></div>
 
 <div class="overlay" id="overlay" hidden>
-  <div class="sheet">
-    <img id="result" alt="Imagem pronta">
-    <p>Pressione e segure a imagem (celular) ou clique com o botão direito (computador) para salvar.</p>
-    <button class="btn btn-primary" id="close-overlay" type="button">Fechar</button>
-  </div>
+  <div class="sheet" id="sheet"></div>
 </div>
+
+<datalist id="species-names"></datalist>
+<datalist id="species-sci"></datalist>
 
 <script>
   const FORMATS = { "4:5": [1080, 1350], "1:1": [1080, 1080], "9:16": [1080, 1920] };
   const RATIOS = { "1:1": 1, "4:5": 0.8, "4:3": 4 / 3, "3:2": 1.5 };
+  const SLOT_COUNT = { "1": 1, "2h": 2, "2v": 2, "3": 3, "4": 4 };
   const FONTS = {
     "Caveat": "cursive",
     "Patrick Hand": "cursive",
@@ -329,6 +376,7 @@
     gradient: false,
     bg2: "#f4f1e6",
     grain: 35,
+    frameStyle: "polaroid",
     frame: "#ffffff",
     framePad: 38,
     bottomBorder: 210,
@@ -336,10 +384,8 @@
     tilt: -3,
     shadow: 45,
     shift: 0,
+    layout: "1",
     photoRatio: "1:1",
-    zoom: 100,
-    focusX: 50,
-    focusY: 50,
     tone: "#ffb347",
     toneAmount: 0,
     textMode: "frame",
@@ -363,6 +409,7 @@
     labelColor: "#3d3417",
     labelBg: "#f1d68a",
     footer: "08/10/2026",
+    footerColor: "#5f7262",
     idShow: true,
     idNumber: 1,
     idAuto: false,
@@ -375,17 +422,28 @@
     wmFont: "DM Sans",
     wmSize: 28,
     wmOpacity: 60,
-    wmColor: "#5f7262"
+    wmColor: "#5f7262",
+    sticker: "none",
+    stickerText: "Inédito",
+    stickerColor: "#f2b134",
+    stickerInk: "#4a2a00",
+    stickerSize: 150,
+    stickerPosition: "top-right",
+    stickerTilt: 12
   };
 
-  const STYLE_KEYS = [
-    "bg1", "gradient", "bg2", "frame", "tilt", "shadow",
+  const TEMPLATE_KEYS = [
+    "format", "bg1", "gradient", "bg2", "grain",
+    "frameStyle", "frame", "framePad", "bottomBorder", "cardWidth", "tilt", "shadow", "shift",
+    "layout", "photoRatio", "tone", "toneAmount", "textMode", "align",
     "nameFont", "nameSize", "nameColor", "nameBold", "nameItalic",
     "sciFont", "sciSize", "sciColor", "sciItalic", "sciBold",
-    "label", "labelStyle", "labelFont", "labelSize", "labelColor", "labelBg", "wmColor"
+    "label", "labelStyle", "labelFont", "labelSize", "labelColor", "labelBg",
+    "footerColor", "idShow", "idAuto", "idPrefix", "idDigits", "idPosition", "idSize",
+    "wmPosition", "wmFont", "wmSize", "wmOpacity", "wmColor",
+    "sticker", "stickerText", "stickerColor", "stickerInk", "stickerSize", "stickerPosition", "stickerTilt"
   ];
-  const PHOTO_KEYS = ["zoom", "focusX", "focusY"];
-  const CONTENT_KEYS = ["name", "sci", "footer"];
+  const TRANSIENT_KEYS = ["slots", "activeSlot", "zoom", "focusX", "focusY"];
 
   const PRESETS = {
     dia: {
@@ -404,7 +462,27 @@
         labelColor: "#fff6ee",
         nameColor: "#4a2f22",
         sciColor: "#8a6b5a",
+        footerColor: "#8a6b5a",
         wmColor: "#8a6b5a"
+      }
+    },
+    registro: {
+      title: "Primeiro registro",
+      values: {
+        bg1: "#e3e4f3",
+        tilt: 2,
+        label: "Primeiro registro",
+        labelStyle: "tape",
+        labelBg: "#f3b7a6",
+        labelColor: "#4a2418",
+        nameColor: "#2f2a4a",
+        sciColor: "#6a6590",
+        footerColor: "#6a6590",
+        wmColor: "#6a6590",
+        sticker: "star",
+        stickerText: "Inédito",
+        stickerColor: "#f2b134",
+        stickerInk: "#4a2a00"
       }
     },
     classico: {
@@ -423,24 +501,138 @@
         nameColor: "#25303a",
         sciFont: "Playfair Display",
         sciColor: "#5d6b78",
+        footerColor: "#5d6b78",
         wmColor: "#5d6b78"
+      }
+    },
+    filme: {
+      title: "Filme 35 mm",
+      values: {
+        frameStyle: "film",
+        bg1: "#d8d4ca",
+        frame: "#17191b",
+        tilt: 0,
+        shadow: 55,
+        cardWidth: 84,
+        framePad: 36,
+        bottomBorder: 170,
+        grain: 55,
+        nameFont: "Special Elite",
+        nameBold: false,
+        nameSize: 72,
+        nameColor: "#f2eee5",
+        sciFont: "Special Elite",
+        sciItalic: false,
+        sciSize: 34,
+        sciColor: "#b8b2a4",
+        label: "Pássaro do dia",
+        labelStyle: "text",
+        labelFont: "Special Elite",
+        labelColor: "#2c2a26",
+        labelSize: 44,
+        footerColor: "#4a4741",
+        wmColor: "#4a4741"
+      }
+    },
+    selo: {
+      title: "Selo postal",
+      values: {
+        frameStyle: "stamp",
+        bg1: "#e9dcc3",
+        frame: "#fffaf0",
+        framePad: 48,
+        tilt: -1.5,
+        shadow: 40,
+        bottomBorder: 200,
+        nameFont: "Playfair Display",
+        nameBold: false,
+        nameItalic: true,
+        nameSize: 84,
+        nameColor: "#3b2a1f",
+        sciFont: "Playfair Display",
+        sciItalic: false,
+        sciSize: 38,
+        sciColor: "#7a6450",
+        label: "Pássaro do dia",
+        labelStyle: "pill",
+        labelFont: "Special Elite",
+        labelBg: "#7a2e2e",
+        labelColor: "#fff3e6",
+        labelSize: 40,
+        footerColor: "#6b5640",
+        wmColor: "#6b5640"
+      }
+    },
+    galeria: {
+      title: "Galeria",
+      values: {
+        frameStyle: "museum",
+        bg1: "#ebebe8",
+        frame: "#fcfbf8",
+        framePad: 34,
+        tilt: 0,
+        shadow: 35,
+        bottomBorder: 190,
+        grain: 20,
+        align: "left",
+        nameFont: "Playfair Display",
+        nameBold: false,
+        nameSize: 70,
+        nameColor: "#262626",
+        sciFont: "DM Sans",
+        sciItalic: true,
+        sciSize: 34,
+        sciColor: "#6b6b6b",
+        label: "Pássaro do dia",
+        labelStyle: "text",
+        labelFont: "DM Sans",
+        labelColor: "#444444",
+        labelSize: 36,
+        footerColor: "#6b6b6b",
+        wmColor: "#6b6b6b"
       }
     }
   };
 
+  const slot = () => state.slots[state.activeSlot];
+  const slotSetter = (prop) => (value) => {
+    slot()[prop] = value;
+    refresh();
+    schedule();
+  };
+
   const SECTIONS = [
     {
-      title: "Foto",
+      title: "Fotos",
       open: true,
       fields: [
+        {
+          key: "layout",
+          type: "select",
+          label: "Fotos no cartão",
+          options: [
+            ["1", "1 foto"],
+            ["2h", "2 fotos lado a lado"],
+            ["2v", "2 fotos empilhadas"],
+            ["3", "3 fotos (1 grande e 2 pequenas)"],
+            ["4", "4 fotos em grade"]
+          ]
+        },
+        { type: "slotPicker", showIf: (s) => SLOT_COUNT[s.layout] > 1 },
         { type: "photo" },
-        { key: "zoom", type: "range", label: "Zoom", min: 100, max: 500, unit: "%" },
-        { key: "focusX", type: "range", label: "Enquadramento horizontal", min: 0, max: 100, unit: "%" },
-        { key: "focusY", type: "range", label: "Enquadramento vertical", min: 0, max: 100, unit: "%" },
+        { type: "range", label: "Zoom", min: 100, max: 500, unit: "%", get: () => slot().zoom, set: slotSetter("zoom") },
+        { type: "range", label: "Enquadramento horizontal", min: 0, max: 100, unit: "%", get: () => slot().fx, set: slotSetter("fx") },
+        { type: "range", label: "Enquadramento vertical", min: 0, max: 100, unit: "%", get: () => slot().fy, set: slotSetter("fy") },
+        {
+          type: "text",
+          label: "Legenda desta foto (ex.: Macho, Filhote)",
+          get: () => slot().caption,
+          set: slotSetter("caption")
+        },
         {
           key: "photoRatio",
           type: "select",
-          label: "Proporção da foto",
+          label: "Proporção da área das fotos",
           options: [["1:1", "Quadrada 1:1"], ["4:5", "Vertical 4:5"], ["4:3", "Horizontal 4:3"], ["3:2", "Horizontal 3:2"]]
         },
         { key: "tone", type: "color", label: "Cor do tom" },
@@ -452,8 +644,9 @@
       open: true,
       fields: [
         { key: "label", type: "text", label: "Chamada" },
-        { key: "name", type: "text", label: "Nome da espécie" },
-        { key: "sci", type: "text", label: "Nome científico" },
+        { key: "name", type: "text", label: "Nome da espécie", list: "species-names", onInput: (value) => autofillSpecies(value) },
+        { key: "sci", type: "text", label: "Nome científico", list: "species-sci" },
+        { type: "custom", build: buildSpeciesHint },
         { key: "footer", type: "text", label: "Rodapé (data, @perfil, local)" },
         {
           key: "textMode",
@@ -475,7 +668,7 @@
       fields: [
         { key: "idShow", type: "check", label: "Mostrar o número" },
         { key: "idAuto", type: "check", label: "Somar 1 ao salvar" },
-        { key: "idNumber", type: "stepper", label: "Número deste pássaro" },
+        { key: "idNumber", type: "stepper", label: "Número deste modelo" },
         { key: "idPrefix", type: "text", label: "Texto antes do número (ex.: Nº, #, ID)" },
         {
           key: "idDigits",
@@ -518,6 +711,65 @@
       ]
     },
     {
+      title: "Moldura",
+      fields: [
+        {
+          key: "frameStyle",
+          type: "select",
+          label: "Estilo da moldura",
+          options: [
+            ["polaroid", "Polaroid"],
+            ["film", "Filme 35 mm"],
+            ["stamp", "Selo postal (borda serrilhada)"],
+            ["museum", "Passe-partout de galeria"],
+            ["none", "Sem moldura"]
+          ]
+        },
+        { key: "frame", type: "color", label: "Cor da moldura" },
+        { key: "framePad", type: "range", label: "Espessura da moldura", min: 16, max: 100, showIf: (s) => s.frameStyle !== "none" },
+        {
+          key: "bottomBorder",
+          type: "range",
+          label: "Espaço dos nomes na moldura",
+          min: 100,
+          max: 340,
+          showIf: (s) => s.textMode === "frame" && s.frameStyle !== "none"
+        },
+        { key: "cardWidth", type: "range", label: "Largura do cartão", min: 55, max: 96, unit: "%" },
+        { key: "tilt", type: "range", label: "Inclinação", min: -12, max: 12, step: 0.5, unit: "°" },
+        { key: "shadow", type: "range", label: "Sombra", min: 0, max: 100 },
+        { key: "shift", type: "range", label: "Subir ou descer o cartão", min: -300, max: 300 }
+      ]
+    },
+    {
+      title: "Adesivo",
+      fields: [
+        {
+          key: "sticker",
+          type: "select",
+          label: "Tipo de adesivo",
+          options: [["none", "Nenhum"], ["star", "Estrela serrilhada"], ["seal", "Selo redondo"], ["stamp", "Carimbo retangular"]]
+        },
+        { key: "stickerText", type: "text", label: "Texto do adesivo (ex.: Inédito, Raro)", showIf: (s) => s.sticker !== "none" },
+        { key: "stickerColor", type: "color", label: "Cor do adesivo", showIf: (s) => s.sticker !== "none" },
+        { key: "stickerInk", type: "color", label: "Cor do texto", showIf: (s) => s.sticker === "star" || s.sticker === "seal" },
+        { key: "stickerSize", type: "range", label: "Tamanho", min: 70, max: 260, showIf: (s) => s.sticker !== "none" },
+        { key: "stickerTilt", type: "range", label: "Inclinação", min: -30, max: 30, unit: "°", showIf: (s) => s.sticker !== "none" },
+        {
+          key: "stickerPosition",
+          type: "select",
+          label: "Posição na foto",
+          options: [
+            ["top-right", "Canto superior direito"],
+            ["top-left", "Canto superior esquerdo"],
+            ["bottom-right", "Canto inferior direito"],
+            ["bottom-left", "Canto inferior esquerdo"]
+          ],
+          showIf: (s) => s.sticker !== "none"
+        }
+      ]
+    },
+    {
       title: "Fontes e cores dos textos",
       fields: [
         { key: "nameFont", type: "select", label: "Fonte do nome", options: FONT_OPTIONS },
@@ -527,9 +779,10 @@
         { key: "nameItalic", type: "check", label: "Itálico" },
         { key: "sciFont", type: "select", label: "Fonte do nome científico", options: FONT_OPTIONS },
         { key: "sciSize", type: "range", label: "Tamanho do nome científico", min: 20, max: 100 },
-        { key: "sciColor", type: "color", label: "Cor do científico e rodapé" },
+        { key: "sciColor", type: "color", label: "Cor do científico e do número" },
         { key: "sciItalic", type: "check", label: "Itálico" },
         { key: "sciBold", type: "check", label: "Negrito" },
+        { key: "footerColor", type: "color", label: "Cor do rodapé" },
         {
           key: "labelStyle",
           type: "select",
@@ -540,25 +793,6 @@
         { key: "labelSize", type: "range", label: "Tamanho da chamada", min: 24, max: 100 },
         { key: "labelColor", type: "color", label: "Cor do texto da chamada" },
         { key: "labelBg", type: "color", label: "Cor da fita ou selo" }
-      ]
-    },
-    {
-      title: "Cartão e moldura",
-      fields: [
-        { key: "frame", type: "color", label: "Cor da moldura" },
-        { key: "framePad", type: "range", label: "Espessura da moldura", min: 16, max: 100 },
-        {
-          key: "bottomBorder",
-          type: "range",
-          label: "Borda de baixo",
-          min: 100,
-          max: 340,
-          showIf: (s) => s.textMode === "frame"
-        },
-        { key: "cardWidth", type: "range", label: "Largura do cartão", min: 55, max: 96, unit: "%" },
-        { key: "tilt", type: "range", label: "Inclinação", min: -12, max: 12, step: 0.5, unit: "°" },
-        { key: "shadow", type: "range", label: "Sombra", min: 0, max: 100 },
-        { key: "shift", type: "range", label: "Subir ou descer o cartão", min: -300, max: 300 }
       ]
     },
     {
@@ -579,47 +813,122 @@
         { key: "bg2", type: "color", label: "Segunda cor", showIf: (s) => s.gradient },
         { key: "grain", type: "range", label: "Textura de papel", min: 0, max: 100 }
       ]
+    },
+    {
+      id: "sec-modelos",
+      title: "Meus modelos",
+      fields: [{ type: "custom", build: buildTemplateManager }]
+    },
+    {
+      title: "Catálogo de registros",
+      fields: [{ type: "custom", build: buildCatalog }]
     }
   ];
 
   const STORAGE_KEY = "estudio-passaro-v1";
+  const META_KEY = "estudio-passaro-meta-v1";
+  const CATALOG_KEY = "estudio-passaro-catalogo-v1";
+
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
+  function loadJSON(key, fallback) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key));
+      return value === null || value === undefined ? fallback : value;
+    } catch (err) {
+      return fallback;
+    }
+  }
+
+  function saveJSON(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function makeSlots() {
+    return [0, 1, 2, 3].map(() => ({ zoom: 100, fx: 50, fy: 50, caption: "" }));
+  }
+
+  function pickKeys(source, keys) {
+    const out = {};
+    keys.forEach((key) => {
+      out[key] = source[key];
+    });
+    return out;
+  }
+
+  const meta = loadJSON(META_KEY, {});
+  let customTemplates = Array.isArray(meta.templates) ? meta.templates : [];
+  let counters = meta.counters && typeof meta.counters === "object" ? meta.counters : {};
+  let catalog = loadJSON(CATALOG_KEY, []);
+  if (!Array.isArray(catalog)) catalog = [];
+
+  function presetDef(id) {
+    return PRESETS[id] || customTemplates.find((tpl) => tpl.id === id);
+  }
+
   let state = { ...DEFAULTS };
-  let photo = null;
-  let customPhoto = false;
+  const saved = loadJSON(STORAGE_KEY, null);
+  if (saved && typeof saved === "object") {
+    TRANSIENT_KEYS.forEach((key) => delete saved[key]);
+    state = { ...DEFAULTS, ...saved };
+  }
+  state.slots = makeSlots();
+  state.activeSlot = 0;
+  if (!presetDef(state.preset)) state.preset = "dia";
+  if (counters[state.preset] === undefined) counters[state.preset] = Number(state.idNumber) || 1;
+  state.idNumber = counters[state.preset];
+
+  const photos = [null, null, null, null];
   let downloads = null;
   let raf = 0;
   let saveTimer = 0;
   let grainPattern = null;
-  let photoScaleOnCanvas = 1;
+  let exporting = false;
+  let lastSlots = null;
+  const slotScale = [1, 1, 1, 1];
   const triedFonts = new Set();
   const refreshers = [];
+  let fieldSeq = 0;
+  let catalogUI = null;
+  let renderPresets = () => {};
 
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (saved && typeof saved === "object") {
-      PHOTO_KEYS.forEach((key) => delete saved[key]);
-      state = { ...DEFAULTS, ...saved };
-    }
-  } catch (err) {}
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function norm(text) {
+    return String(text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  }
+
+  function slug(text) {
+    return norm(text).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  function uid() {
+    return Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+  }
+
+  function clampActiveSlot() {
+    state.activeSlot = Math.min(state.activeSlot, SLOT_COUNT[state.layout] - 1);
+  }
 
   function setStorageNote(ok) {
     document.getElementById("storage-note").textContent = ok
-      ? "Configurações, número e @ ficam salvos neste navegador. A foto não é salva."
-      : "Este navegador não permite salvar as configurações; elas valem só até fechar a página.";
+      ? "Configurações, modelos, contadores, @ e catálogo ficam salvos neste navegador. As fotos não são salvas."
+      : "Este navegador não permite salvar; os dados valem só até fechar a página.";
   }
 
   function writeStorage() {
-    try {
-      const copy = { ...state };
-      PHOTO_KEYS.forEach((key) => delete copy[key]);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
-      setStorageNote(true);
-    } catch (err) {
-      setStorageNote(false);
-    }
+    const copy = { ...state };
+    TRANSIENT_KEYS.forEach((key) => delete copy[key]);
+    const ok = saveJSON(STORAGE_KEY, copy) && saveJSON(META_KEY, { templates: customTemplates, counters });
+    setStorageNote(ok);
   }
 
   function persist() {
@@ -627,110 +936,231 @@
     saveTimer = setTimeout(writeStorage, 300);
   }
 
+  function saveCatalog() {
+    setStorageNote(saveJSON(CATALOG_KEY, catalog));
+  }
+
   function schedule() {
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(draw);
-  }
-
-  function setValue(key, value) {
-    state[key] = value;
-    refresh();
-    schedule();
-    persist();
   }
 
   function refresh() {
     refreshers.forEach((fn) => fn());
   }
 
+  function setValue(key, value) {
+    state[key] = value;
+    if (key === "idNumber") counters[state.preset] = value;
+    if (key === "layout") clampActiveSlot();
+    refresh();
+    schedule();
+    persist();
+  }
+
+  function applyPreset(id) {
+    const def = presetDef(id);
+    if (!def) return;
+    Object.assign(state, pickKeys(DEFAULTS, TEMPLATE_KEYS), def.values, { preset: id });
+    if (counters[id] === undefined) counters[id] = 1;
+    state.idNumber = counters[id];
+    clampActiveSlot();
+    refresh();
+    schedule();
+    persist();
+  }
+
+  function idText() {
+    const digits = Number(state.idDigits) || 1;
+    const number = String(Math.max(0, parseInt(state.idNumber, 10) || 0)).padStart(digits, "0");
+    const prefix = state.idPrefix.trim();
+    return prefix ? `${prefix} ${number}` : number;
+  }
+
+  function labelText() {
+    const base = state.label.trim();
+    if (!(state.idShow && state.idPosition === "label")) return base;
+    return base ? `${base} · ${idText()}` : idText();
+  }
+
+  function presetTitle(id) {
+    const def = presetDef(id);
+    return def ? def.title : id;
+  }
+
+  function photoDate() {
+    const match = state.footer.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
+    if (match) return `${match[1].padStart(2, "0")}/${match[2].padStart(2, "0")}/${match[3]}`;
+    return new Date().toLocaleDateString("pt-BR");
+  }
+
+  function speciesMatches() {
+    const name = norm(state.name);
+    const sci = norm(state.sci);
+    if (!name && !sci) return null;
+    return catalog.filter((e) => (sci && norm(e.sci) === sci) || (name && norm(e.name) === name));
+  }
+
+  function autofillSpecies(name) {
+    const key = norm(name);
+    if (!key) return;
+    const hit = [...catalog].reverse().find((e) => norm(e.name) === key && e.sci);
+    if (hit && hit.sci !== state.sci) setValue("sci", hit.sci);
+  }
+
+  function logEntry() {
+    const name = state.name.trim();
+    const sci = state.sci.trim();
+    if (!name && !sci) return false;
+    const entry = {
+      id: uid(),
+      n: Number(state.idNumber) || 0,
+      tag: state.idShow ? idText() : "",
+      presetId: state.preset,
+      preset: presetTitle(state.preset),
+      name,
+      sci,
+      date: photoDate(),
+      ts: Date.now()
+    };
+    const key = norm(sci) || norm(name);
+    const same = catalog.findIndex(
+      (e) => e.presetId === entry.presetId && e.n === entry.n && (norm(e.sci) || norm(e.name)) === key
+    );
+    if (same >= 0) catalog[same] = { ...entry, id: catalog[same].id };
+    else catalog.push(entry);
+    saveCatalog();
+    renderCatalog();
+    refresh();
+    return true;
+  }
+
+  function afterExport(message) {
+    const logged = logEntry();
+    const parts = [];
+    if (message) parts.push(message);
+    if (logged) parts.push("Registrada no catálogo.");
+    if (state.idShow && state.idAuto && (logged || message)) {
+      setValue("idNumber", clamp((parseInt(state.idNumber, 10) || 0) + 1, 0, 99999));
+      parts.push(`Próximo: ${idText()}.`);
+    }
+    if (parts.length) toast(parts.join(" "));
+  }
+
+  function armButton(button, armedLabel, action) {
+    const original = button.textContent;
+    let timer = 0;
+    button.addEventListener("click", () => {
+      if (button.dataset.armed === "1") {
+        clearTimeout(timer);
+        button.dataset.armed = "";
+        button.textContent = original;
+        action();
+        return;
+      }
+      button.dataset.armed = "1";
+      button.textContent = armedLabel;
+      timer = setTimeout(() => {
+        button.dataset.armed = "";
+        button.textContent = original;
+      }, 3000);
+    });
+  }
+
   function buildField(f) {
     const el = document.createElement("div");
     el.className = `field field-${f.type}`;
-    const id = `f-${f.key || f.type}`;
+    const id = `f${++fieldSeq}`;
+    const get = f.get || (() => state[f.key]);
+    const set = f.set || ((value) => setValue(f.key, value));
 
-    if (f.type === "photo") {
-      el.innerHTML = `
-        <button class="btn btn-primary" type="button">Escolher outra foto</button>
-        <input type="file" accept="image/*" hidden>`;
-      const button = el.querySelector("button");
-      const input = el.querySelector("input");
-      button.addEventListener("click", () => input.click());
-      input.addEventListener("change", () => {
-        if (input.files[0]) loadFile(input.files[0]);
-        input.value = "";
-      });
-      return el;
-    }
-
-    if (f.type === "stepper") {
-      el.innerHTML = `<label for="${id}"><span>${f.label}</span></label>
-        <div class="stepper">
-          <button class="btn" type="button" data-step="-1" aria-label="Diminuir">−</button>
-          <input id="${id}" type="number" inputmode="numeric" min="0" max="99999" step="1">
-          <button class="btn" type="button" data-step="1" aria-label="Aumentar">+</button>
-        </div>`;
-      const input = el.querySelector("input");
-      el.querySelectorAll("button").forEach((b) => {
-        b.addEventListener("click", () => {
-          setValue(f.key, clamp((Number(state[f.key]) || 0) + Number(b.dataset.step), 0, 99999));
+    switch (f.type) {
+      case "photo":
+        buildPhotoField(el);
+        break;
+      case "slotPicker":
+        buildSlotPicker(el);
+        break;
+      case "custom":
+        f.build(el);
+        break;
+      case "stepper": {
+        el.innerHTML = `<label for="${id}"><span>${f.label}</span></label>
+          <div class="stepper">
+            <button class="btn" type="button" data-step="-1" aria-label="Diminuir">−</button>
+            <input id="${id}" type="number" inputmode="numeric" min="0" max="99999" step="1">
+            <button class="btn" type="button" data-step="1" aria-label="Aumentar">+</button>
+          </div>`;
+        const input = el.querySelector("input");
+        el.querySelectorAll("button").forEach((b) => {
+          b.addEventListener("click", () => {
+            set(clamp((Number(get()) || 0) + Number(b.dataset.step), 0, 99999));
+          });
         });
-      });
-      input.addEventListener("input", () => {
-        const n = parseInt(input.value, 10);
-        if (!Number.isNaN(n)) setValue(f.key, clamp(n, 0, 99999));
-      });
-      refreshers.push(() => {
-        if (input.value !== String(state[f.key]) && document.activeElement !== input) input.value = state[f.key];
-      });
-    }
-
-    if (f.type === "range") {
-      el.innerHTML = `<label for="${id}"><span>${f.label}</span><output></output></label>
-        <input id="${id}" type="range" min="${f.min}" max="${f.max}" step="${f.step || 1}">`;
-      const input = el.querySelector("input");
-      const out = el.querySelector("output");
-      input.addEventListener("input", () => setValue(f.key, Number(input.value)));
-      refreshers.push(() => {
-        input.value = state[f.key];
-        out.textContent = `${state[f.key]}${f.unit || ""}`;
-      });
-    }
-
-    if (f.type === "text") {
-      el.innerHTML = `<label for="${id}"><span>${f.label}</span></label><input id="${id}" type="text" autocomplete="off">`;
-      const input = el.querySelector("input");
-      input.addEventListener("input", () => setValue(f.key, input.value));
-      refreshers.push(() => {
-        if (input.value !== state[f.key]) input.value = state[f.key];
-      });
-    }
-
-    if (f.type === "color") {
-      el.innerHTML = `<label for="${id}"><span>${f.label}</span></label><input id="${id}" type="color">`;
-      const input = el.querySelector("input");
-      input.addEventListener("input", () => setValue(f.key, input.value));
-      refreshers.push(() => {
-        if (input.value !== state[f.key]) input.value = state[f.key];
-      });
-    }
-
-    if (f.type === "select") {
-      const options = f.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
-      el.innerHTML = `<label for="${id}"><span>${f.label}</span></label><select id="${id}">${options}</select>`;
-      const select = el.querySelector("select");
-      select.addEventListener("change", () => setValue(f.key, select.value));
-      refreshers.push(() => {
-        select.value = state[f.key];
-      });
-    }
-
-    if (f.type === "check") {
-      el.innerHTML = `<label class="switch" for="${id}"><input id="${id}" type="checkbox"><span>${f.label}</span></label>`;
-      const input = el.querySelector("input");
-      input.addEventListener("change", () => setValue(f.key, input.checked));
-      refreshers.push(() => {
-        input.checked = !!state[f.key];
-      });
+        input.addEventListener("input", () => {
+          const n = parseInt(input.value, 10);
+          if (!Number.isNaN(n)) set(clamp(n, 0, 99999));
+        });
+        refreshers.push(() => {
+          if (input.value !== String(get()) && document.activeElement !== input) input.value = get();
+        });
+        break;
+      }
+      case "range": {
+        el.innerHTML = `<label for="${id}"><span>${f.label}</span><output></output></label>
+          <input id="${id}" type="range" min="${f.min}" max="${f.max}" step="${f.step || 1}">`;
+        const input = el.querySelector("input");
+        const out = el.querySelector("output");
+        input.addEventListener("input", () => set(Number(input.value)));
+        refreshers.push(() => {
+          const value = get();
+          input.value = value;
+          out.textContent = `${value}${f.unit || ""}`;
+        });
+        break;
+      }
+      case "text": {
+        el.innerHTML = `<label for="${id}"><span>${f.label}</span></label><input id="${id}" type="text" autocomplete="off">`;
+        const input = el.querySelector("input");
+        if (f.list) input.setAttribute("list", f.list);
+        input.addEventListener("input", () => {
+          set(input.value);
+          if (f.onInput) f.onInput(input.value);
+        });
+        refreshers.push(() => {
+          const value = get();
+          if (input.value !== value) input.value = value;
+        });
+        break;
+      }
+      case "color": {
+        el.innerHTML = `<label for="${id}"><span>${f.label}</span></label><input id="${id}" type="color">`;
+        const input = el.querySelector("input");
+        input.addEventListener("input", () => set(input.value));
+        refreshers.push(() => {
+          if (input.value !== get()) input.value = get();
+        });
+        break;
+      }
+      case "select": {
+        const options = f.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
+        el.innerHTML = `<label for="${id}"><span>${f.label}</span></label><select id="${id}">${options}</select>`;
+        const select = el.querySelector("select");
+        select.addEventListener("change", () => set(select.value));
+        refreshers.push(() => {
+          select.value = String(get());
+        });
+        break;
+      }
+      case "check": {
+        el.innerHTML = `<label class="switch" for="${id}"><input id="${id}" type="checkbox"><span>${f.label}</span></label>`;
+        const input = el.querySelector("input");
+        input.addEventListener("change", () => set(input.checked));
+        refreshers.push(() => {
+          input.checked = !!get();
+        });
+        break;
+      }
     }
 
     if (f.showIf) {
@@ -741,11 +1171,261 @@
     return el;
   }
 
+  function buildPhotoField(el) {
+    el.innerHTML = `
+      <button class="btn btn-primary" type="button" data-role="choose"></button>
+      <button class="btn small" type="button" data-role="clear">Remover esta foto</button>
+      <input type="file" accept="image/*" multiple hidden>`;
+    const choose = el.querySelector("[data-role=choose]");
+    const clear = el.querySelector("[data-role=clear]");
+    const input = el.querySelector("input");
+    choose.addEventListener("click", () => input.click());
+    clear.addEventListener("click", () => {
+      photos[state.activeSlot] = null;
+      refresh();
+      schedule();
+    });
+    input.addEventListener("change", () => {
+      if (input.files.length) loadFiles([...input.files], state.activeSlot);
+      input.value = "";
+    });
+    refreshers.push(() => {
+      const multi = SLOT_COUNT[state.layout] > 1;
+      const has = !!photos[state.activeSlot];
+      choose.textContent = multi
+        ? `${has ? "Trocar" : "Escolher"} a foto ${state.activeSlot + 1}`
+        : has ? "Trocar foto" : "Escolher foto";
+      clear.hidden = !has;
+    });
+  }
+
+  function buildSlotPicker(el) {
+    el.innerHTML = `<label><span>Foto em edição</span></label><div class="slots"></div>`;
+    const host = el.querySelector(".slots");
+    let signature = "";
+    refreshers.push(() => {
+      const count = SLOT_COUNT[state.layout];
+      const sig = `${count}-${state.activeSlot}-${photos.map((p) => (p ? 1 : 0)).join("")}`;
+      if (sig === signature) return;
+      signature = sig;
+      host.replaceChildren();
+      for (let i = 0; i < count; i++) {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.textContent = `Foto ${i + 1}${photos[i] ? "" : " (vazia)"}`;
+        chip.setAttribute("aria-pressed", String(i === state.activeSlot));
+        chip.addEventListener("click", () => {
+          state.activeSlot = i;
+          refresh();
+          schedule();
+        });
+        host.appendChild(chip);
+      }
+    });
+  }
+
+  function buildSpeciesHint(el) {
+    el.innerHTML = `<p class="note"></p><div class="row"><button class="btn small" type="button" hidden>Aplicar o modelo Primeiro registro</button></div>`;
+    const note = el.querySelector(".note");
+    const button = el.querySelector("button");
+    button.addEventListener("click", () => applyPreset("registro"));
+    refreshers.push(() => {
+      const hits = speciesMatches();
+      if (hits === null) {
+        note.textContent = "Digite o nome para conferir se a espécie já está no catálogo.";
+        button.hidden = true;
+      } else if (hits.length) {
+        const last = hits[hits.length - 1];
+        note.textContent = `Já registrada ${hits.length}x. Último: ${last.tag || `Nº ${last.n}`} em ${last.date}.`;
+        button.hidden = true;
+      } else {
+        note.textContent = catalog.length
+          ? "Ainda não está no catálogo: pode ser um Primeiro registro."
+          : "O catálogo está vazio. Cada imagem salva entra nele.";
+        button.hidden = !state.name.trim() || state.preset === "registro";
+      }
+    });
+  }
+
+  function buildTemplateManager(el) {
+    el.innerHTML = `
+      <p class="note">Salve o visual atual (cores, moldura, fontes, formato, adesivo, número...) para usar com um toque. Cada modelo tem a sua própria contagem de número.</p>
+      <input type="text" data-role="name" placeholder="Nome do modelo (ex.: Raridade)" autocomplete="off" maxlength="30">
+      <div class="row">
+        <button class="btn small btn-solid" type="button" data-role="new">Salvar como novo modelo</button>
+        <button class="btn small" type="button" data-role="update">Atualizar este modelo</button>
+        <button class="btn small" type="button" data-role="delete">Excluir este modelo</button>
+      </div>`;
+    const nameInput = el.querySelector("[data-role=name]");
+    const newButton = el.querySelector("[data-role=new]");
+    const updateButton = el.querySelector("[data-role=update]");
+    const deleteButton = el.querySelector("[data-role=delete]");
+    let lastPreset = null;
+
+    const currentCustom = () => customTemplates.find((tpl) => tpl.id === state.preset);
+
+    newButton.addEventListener("click", () => {
+      const title = nameInput.value.trim() || `Modelo ${customTemplates.length + 1}`;
+      const tpl = { id: `c${uid()}`, title, values: pickKeys(state, TEMPLATE_KEYS) };
+      customTemplates.push(tpl);
+      counters[tpl.id] = 1;
+      state.preset = tpl.id;
+      state.idNumber = 1;
+      writeStorage();
+      renderPresets();
+      refresh();
+      toast(`Modelo "${title}" salvo.`);
+    });
+
+    updateButton.addEventListener("click", () => {
+      const tpl = currentCustom();
+      if (!tpl) return;
+      tpl.values = pickKeys(state, TEMPLATE_KEYS);
+      tpl.title = nameInput.value.trim() || tpl.title;
+      writeStorage();
+      renderPresets();
+      refresh();
+      toast(`Modelo "${tpl.title}" atualizado.`);
+    });
+
+    armButton(deleteButton, "Toque de novo para excluir", () => {
+      const tpl = currentCustom();
+      if (!tpl) return;
+      customTemplates = customTemplates.filter((item) => item.id !== tpl.id);
+      delete counters[tpl.id];
+      applyPreset("dia");
+      writeStorage();
+      renderPresets();
+      toast("Modelo excluído.");
+    });
+
+    refreshers.push(() => {
+      const tpl = currentCustom();
+      updateButton.hidden = !tpl;
+      deleteButton.hidden = !tpl;
+      if (state.preset !== lastPreset) {
+        lastPreset = state.preset;
+        nameInput.value = tpl ? tpl.title : "";
+      }
+    });
+  }
+
+  function buildCatalog(el) {
+    el.innerHTML = `
+      <p class="note" data-role="summary"></p>
+      <input type="text" data-role="search" placeholder="Buscar por nome, científico, número ou modelo" autocomplete="off">
+      <div class="catalog-list" data-role="list"></div>
+      <div class="row">
+        <button class="btn small btn-solid" type="button" data-role="register">Registrar sem salvar imagem</button>
+        <button class="btn small" type="button" data-role="csv">Exportar CSV</button>
+        <button class="btn small" type="button" data-role="clear">Limpar catálogo</button>
+      </div>`;
+    const summary = el.querySelector("[data-role=summary]");
+    const search = el.querySelector("[data-role=search]");
+    const list = el.querySelector("[data-role=list]");
+
+    el.querySelector("[data-role=register]").addEventListener("click", () => {
+      if (!state.name.trim() && !state.sci.trim()) {
+        toast("Preencha o nome da espécie para registrar.");
+        return;
+      }
+      afterExport("");
+    });
+
+    el.querySelector("[data-role=csv]").addEventListener("click", exportCsv);
+
+    armButton(el.querySelector("[data-role=clear]"), "Toque de novo para limpar tudo", () => {
+      catalog = [];
+      saveCatalog();
+      renderCatalog();
+      refresh();
+      toast("Catálogo limpo.");
+    });
+
+    search.addEventListener("input", () => catalogUI());
+
+    catalogUI = () => {
+      const species = new Set(catalog.map((e) => norm(e.sci) || norm(e.name)));
+      summary.textContent = catalog.length
+        ? `${catalog.length} registro${catalog.length > 1 ? "s" : ""} · ${species.size} espécie${species.size > 1 ? "s" : ""}`
+        : "Nenhum registro ainda. Cada imagem salva entra aqui automaticamente.";
+      const query = norm(search.value);
+      const rows = [...catalog]
+        .sort((a, b) => b.ts - a.ts)
+        .filter((e) => !query || norm([e.tag, e.name, e.sci, e.preset, e.date].join(" ")).includes(query));
+      list.replaceChildren();
+      rows.slice(0, 40).forEach((e) => {
+        const row = document.createElement("div");
+        row.className = "entry";
+        const info = document.createElement("div");
+        const title = document.createElement("div");
+        title.className = "entry-title";
+        title.textContent = `${e.tag ? `${e.tag} · ` : ""}${e.name || e.sci}`;
+        const detail = document.createElement("div");
+        detail.className = "entry-meta";
+        detail.textContent = [e.name && e.sci ? e.sci : "", e.date, e.preset].filter(Boolean).join(" · ");
+        info.append(title, detail);
+        const actions = document.createElement("div");
+        actions.className = "row";
+        const use = document.createElement("button");
+        use.type = "button";
+        use.className = "btn small";
+        use.textContent = "Usar";
+        use.addEventListener("click", () => {
+          state.name = e.name;
+          state.sci = e.sci;
+          refresh();
+          schedule();
+          persist();
+          toast("Nome e científico aplicados.");
+        });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "btn small";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", "Excluir registro");
+        armButton(remove, "Excluir?", () => {
+          catalog = catalog.filter((item) => item.id !== e.id);
+          saveCatalog();
+          renderCatalog();
+          refresh();
+        });
+        actions.append(use, remove);
+        row.append(info, actions);
+        list.appendChild(row);
+      });
+      if (rows.length > 40) {
+        const more = document.createElement("p");
+        more.className = "note";
+        more.textContent = `Mostrando os 40 mais recentes de ${rows.length}. Use a busca para achar os outros.`;
+        list.appendChild(more);
+      }
+    };
+    catalogUI();
+  }
+
+  function renderCatalog() {
+    const fill = (id, values) => {
+      const host = document.getElementById(id);
+      host.replaceChildren();
+      [...new Set(values.filter(Boolean))].forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        host.appendChild(option);
+      });
+    };
+    fill("species-names", catalog.map((e) => e.name));
+    fill("species-sci", catalog.map((e) => e.sci));
+    if (catalogUI) catalogUI();
+  }
+
   function buildUI() {
     const host = document.getElementById("sections");
     SECTIONS.forEach((section) => {
       const details = document.createElement("details");
       details.className = "group";
+      if (section.id) details.id = section.id;
       details.open = !!section.open;
       const summary = document.createElement("summary");
       summary.textContent = section.title;
@@ -757,37 +1437,44 @@
     });
 
     const presetHost = document.getElementById("presets");
-    Object.entries(PRESETS).forEach(([id, preset]) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "chip";
-      chip.textContent = preset.title;
-      chip.addEventListener("click", () => applyPreset(id));
-      presetHost.appendChild(chip);
-      refreshers.push(() => chip.setAttribute("aria-pressed", String(state.preset === id)));
+    let chipRefs = [];
+    renderPresets = () => {
+      presetHost.replaceChildren();
+      chipRefs = [];
+      const all = [
+        ...Object.entries(PRESETS).map(([id, def]) => [id, def.title]),
+        ...customTemplates.map((tpl) => [tpl.id, tpl.title])
+      ];
+      all.forEach(([id, title]) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.textContent = title;
+        chip.addEventListener("click", () => applyPreset(id));
+        presetHost.appendChild(chip);
+        chipRefs.push([id, chip]);
+      });
+      const add = document.createElement("button");
+      add.type = "button";
+      add.className = "chip chip-add";
+      add.textContent = "+ Salvar como modelo";
+      add.addEventListener("click", () => {
+        const section = document.getElementById("sec-modelos");
+        section.open = true;
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+        const input = section.querySelector("[data-role=name]");
+        input.focus({ preventScroll: true });
+      });
+      presetHost.appendChild(add);
+      chipRefs.forEach(([id, chip]) => chip.setAttribute("aria-pressed", String(state.preset === id)));
+    };
+    refreshers.push(() => {
+      chipRefs.forEach(([id, chip]) => chip.setAttribute("aria-pressed", String(state.preset === id)));
     });
-  }
-
-  function applyPreset(id) {
-    const base = {};
-    STYLE_KEYS.forEach((key) => {
-      base[key] = DEFAULTS[key];
+    refreshers.push(() => {
+      document.getElementById("save-carousel").hidden = SLOT_COUNT[state.layout] < 2;
     });
-    Object.assign(state, base, PRESETS[id].values, { preset: id });
-    refresh();
-    schedule();
-    persist();
-  }
-
-  function resetAll() {
-    const keep = {};
-    [...CONTENT_KEYS, "idNumber", "idAuto", "watermark"].forEach((key) => {
-      keep[key] = state[key];
-    });
-    state = { ...DEFAULTS, ...keep };
-    refresh();
-    schedule();
-    persist();
+    renderPresets();
   }
 
   function fontStr(family, size, bold, italic) {
@@ -798,7 +1485,9 @@
     return [
       fontStr(state.nameFont, 40, state.nameBold, state.nameItalic),
       fontStr(state.sciFont, 40, state.sciBold, state.sciItalic),
-      fontStr(state.labelFont, 40, false, false)
+      fontStr(state.labelFont, 40, false, false),
+      fontStr(state.labelFont, 40, true, false),
+      fontStr(state.wmFont, 40, false, false)
     ];
   }
 
@@ -822,10 +1511,6 @@
     Promise.all(jobs).then(schedule);
   }
 
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
-
   function fitSize(text, family, size, bold, italic, maxW) {
     ctx.font = fontStr(family, size, bold, italic);
     const width = ctx.measureText(text).width;
@@ -839,6 +1524,39 @@
     ctx.arcTo(x + w, y + h, x, y + h, r);
     ctx.arcTo(x, y + h, x, y, r);
     ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function stampPath(x, y, w, h, step, r) {
+    const nx = Math.max(2, Math.round(w / step));
+    const ny = Math.max(2, Math.round(h / step));
+    const sx = w / nx;
+    const sy = h / ny;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    for (let i = 0; i < nx; i++) {
+      const cx = x + sx * (i + 0.5);
+      ctx.lineTo(cx - r, y);
+      ctx.arc(cx, y, r, Math.PI, 0, true);
+    }
+    ctx.lineTo(x + w, y);
+    for (let i = 0; i < ny; i++) {
+      const cy = y + sy * (i + 0.5);
+      ctx.lineTo(x + w, cy - r);
+      ctx.arc(x + w, cy, r, -Math.PI / 2, Math.PI / 2, true);
+    }
+    ctx.lineTo(x + w, y + h);
+    for (let i = 0; i < nx; i++) {
+      const cx = x + w - sx * (i + 0.5);
+      ctx.lineTo(cx + r, y + h);
+      ctx.arc(cx, y + h, r, 0, Math.PI, true);
+    }
+    ctx.lineTo(x, y + h);
+    for (let i = 0; i < ny; i++) {
+      const cy = y + h - sy * (i + 0.5);
+      ctx.lineTo(x, cy + r);
+      ctx.arc(x, cy, r, Math.PI / 2, -Math.PI / 2, true);
+    }
     ctx.closePath();
   }
 
@@ -856,58 +1574,6 @@
     g.putImageData(data, 0, 0);
     grainPattern = ctx.createPattern(tile, "repeat");
     return grainPattern;
-  }
-
-  function idText() {
-    const digits = Number(state.idDigits) || 1;
-    const number = String(Math.max(0, parseInt(state.idNumber, 10) || 0)).padStart(digits, "0");
-    const prefix = state.idPrefix.trim();
-    return prefix ? `${prefix} ${number}` : number;
-  }
-
-  function labelText() {
-    const base = state.label.trim();
-    if (!(state.idShow && state.idPosition === "label")) return base;
-    return base ? `${base} · ${idText()}` : idText();
-  }
-
-  function drawBadge(px, py, text) {
-    const s = state;
-    ctx.font = fontStr(s.labelFont, s.idSize, false, false);
-    const w = ctx.measureText(text).width + 40;
-    const h = s.idSize * 1.7;
-    ctx.globalAlpha = 0.92;
-    ctx.fillStyle = s.frame;
-    roundRect(px + 24, py + 24, w, h, h / 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = s.nameColor;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(text, px + 44, py + 24 + h / 2 + 2);
-  }
-
-  function drawIdCorner(right, centerY, text) {
-    ctx.font = fontStr(state.labelFont, state.idSize, false, false);
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = state.sciColor;
-    ctx.fillText(text, right, centerY);
-  }
-
-  function drawWatermark(W, H) {
-    const s = state;
-    const text = s.watermark.trim();
-    if (!text) return;
-    const size = fitSize(text, s.wmFont, s.wmSize, false, false, W * 0.5);
-    ctx.font = fontStr(s.wmFont, size, false, false);
-    const [vertical, horizontal] = s.wmPosition.split("-");
-    ctx.textAlign = horizontal === "right" ? "right" : "left";
-    ctx.textBaseline = "middle";
-    ctx.globalAlpha = s.wmOpacity / 100;
-    ctx.fillStyle = s.wmColor;
-    ctx.fillText(text, horizontal === "right" ? W - 48 : 48, vertical === "top" ? H * 0.045 : H - H * 0.045);
-    ctx.globalAlpha = 1;
   }
 
   function textBlockHeight() {
@@ -937,46 +1603,211 @@
     }
   }
 
-  function drawPhoto(px, py, pw, ph, layoutK) {
+  function slotRects(pw, ph) {
+    const gap = 8;
+    switch (state.layout) {
+      case "2h": {
+        const w = (pw - gap) / 2;
+        return [{ x: 0, y: 0, w, h: ph }, { x: w + gap, y: 0, w, h: ph }];
+      }
+      case "2v": {
+        const h = (ph - gap) / 2;
+        return [{ x: 0, y: 0, w: pw, h }, { x: 0, y: h + gap, w: pw, h }];
+      }
+      case "3": {
+        const bigW = (pw - gap) * 0.6;
+        const smallW = pw - gap - bigW;
+        const h = (ph - gap) / 2;
+        return [
+          { x: 0, y: 0, w: bigW, h: ph },
+          { x: bigW + gap, y: 0, w: smallW, h },
+          { x: bigW + gap, y: h + gap, w: smallW, h }
+        ];
+      }
+      case "4": {
+        const w = (pw - gap) / 2;
+        const h = (ph - gap) / 2;
+        return [
+          { x: 0, y: 0, w, h },
+          { x: w + gap, y: 0, w, h },
+          { x: 0, y: h + gap, w, h },
+          { x: w + gap, y: h + gap, w, h }
+        ];
+      }
+      default:
+        return [{ x: 0, y: 0, w: pw, h: ph }];
+    }
+  }
+
+  function drawCaption(x, y, w, h, text) {
+    const s = state;
+    const size = fitSize(text, s.labelFont, 30, false, false, w - 56);
+    ctx.font = fontStr(s.labelFont, size, false, false);
+    const textW = ctx.measureText(text).width;
+    const pillW = textW + 28;
+    const pillH = 30 * 1.6;
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = s.frame;
+    roundRect(x + 14, y + h - 14 - pillH, pillW, pillH, pillH / 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = s.nameColor;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, x + 28, y + h - 14 - pillH / 2 + 2);
+  }
+
+  function drawSlotPhoto(index, x, y, w, h, layoutK) {
+    const slotState = state.slots[index];
+    const img = photos[index];
     ctx.save();
     ctx.beginPath();
-    ctx.rect(px, py, pw, ph);
+    ctx.rect(x, y, w, h);
     ctx.clip();
-    if (photo) {
-      const iw = photo.naturalWidth || photo.width;
-      const ih = photo.naturalHeight || photo.height;
-      const scale = (Math.max(pw / iw, ph / ih) * state.zoom) / 100;
-      const vw = pw / scale;
-      const vh = ph / scale;
-      const sx = clamp((state.focusX / 100) * iw - vw / 2, 0, iw - vw);
-      const sy = clamp((state.focusY / 100) * ih - vh / 2, 0, ih - vh);
-      ctx.drawImage(photo, sx, sy, vw, vh, px, py, pw, ph);
-      photoScaleOnCanvas = scale * layoutK;
+    if (img) {
+      const iw = img.naturalWidth || img.width;
+      const ih = img.naturalHeight || img.height;
+      const scale = (Math.max(w / iw, h / ih) * slotState.zoom) / 100;
+      const vw = w / scale;
+      const vh = h / scale;
+      const sx = clamp((slotState.fx / 100) * iw - vw / 2, 0, iw - vw);
+      const sy = clamp((slotState.fy / 100) * ih - vh / 2, 0, ih - vh);
+      ctx.drawImage(img, sx, sy, vw, vh, x, y, w, h);
+      slotScale[index] = scale * layoutK;
       if (state.toneAmount > 0) {
         ctx.globalCompositeOperation = "soft-light";
         ctx.globalAlpha = state.toneAmount / 100;
         ctx.fillStyle = state.tone;
-        ctx.fillRect(px, py, pw, ph);
+        ctx.fillRect(x, y, w, h);
       }
     } else {
       ctx.fillStyle = "#d7dcd6";
-      ctx.fillRect(px, py, pw, ph);
+      ctx.fillRect(x, y, w, h);
       ctx.fillStyle = "#7d8a82";
-      ctx.font = fontStr("DM Sans", 40, false, false);
+      ctx.font = fontStr("DM Sans", Math.min(40, w / 7), false, false);
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("Escolha uma foto", px + pw / 2, py + ph / 2);
+      ctx.fillText(SLOT_COUNT[state.layout] > 1 ? `Foto ${index + 1}` : "Escolha uma foto", x + w / 2, y + h / 2);
     }
     ctx.restore();
     ctx.strokeStyle = "rgba(0, 0, 0, 0.14)";
     ctx.lineWidth = 2;
-    ctx.strokeRect(px, py, pw, ph);
+    ctx.strokeRect(x, y, w, h);
+    const caption = slotState.caption.trim();
+    if (caption) drawCaption(x, y, w, h, caption);
+  }
+
+  function drawSlots(px, py, pw, ph, layoutK) {
+    const rects = slotRects(pw, ph).map((r) => ({ x: px + r.x, y: py + r.y, w: r.w, h: r.h }));
+    lastSlots = { matrix: ctx.getTransform(), rects };
+    rects.forEach((r, i) => drawSlotPhoto(i, r.x, r.y, r.w, r.h, layoutK));
+    if (!exporting && rects.length > 1) {
+      const r = rects[state.activeSlot];
+      ctx.save();
+      ctx.strokeStyle = "#2f9e6b";
+      ctx.lineWidth = 5;
+      ctx.setLineDash([16, 10]);
+      ctx.strokeRect(r.x + 3, r.y + 3, r.w - 6, r.h - 6);
+      ctx.restore();
+    }
+  }
+
+  function drawBadge(px, py, text) {
+    const s = state;
+    ctx.font = fontStr(s.labelFont, s.idSize, false, false);
+    const w = ctx.measureText(text).width + 40;
+    const h = s.idSize * 1.7;
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = s.frame;
+    roundRect(px + 24, py + 24, w, h, h / 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = s.nameColor;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, px + 44, py + 24 + h / 2 + 2);
+  }
+
+  function drawIdCorner(right, centerY, text) {
+    ctx.font = fontStr(state.labelFont, state.idSize, false, false);
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = state.sciColor;
+    ctx.fillText(text, right, centerY);
+  }
+
+  function drawSticker(px, py, pw, ph) {
+    const s = state;
+    const text = s.stickerText.trim().toUpperCase();
+    const R = s.stickerSize / 2;
+    const offset = R * 0.7;
+    const [vertical, horizontal] = s.stickerPosition.split("-");
+    const cx = horizontal === "right" ? px + pw - offset : px + offset;
+    const cy = vertical === "top" ? py + offset : py + ph - offset;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((s.stickerTilt * Math.PI) / 180);
+    ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
+    let maxW = R * 1.5;
+    let fill = s.stickerInk;
+
+    if (s.sticker === "star") {
+      const spikes = 16;
+      ctx.beginPath();
+      for (let i = 0; i < spikes * 2; i++) {
+        const angle = (Math.PI * i) / spikes;
+        const radius = i % 2 ? R * 0.86 : R;
+        ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+      }
+      ctx.closePath();
+      ctx.fillStyle = s.stickerColor;
+      ctx.fill();
+    } else if (s.sticker === "seal") {
+      ctx.beginPath();
+      ctx.arc(0, 0, R, 0, Math.PI * 2);
+      ctx.fillStyle = s.stickerColor;
+      ctx.fill();
+      ctx.shadowColor = "transparent";
+      ctx.beginPath();
+      ctx.arc(0, 0, R * 0.84, 0, Math.PI * 2);
+      ctx.strokeStyle = s.stickerInk;
+      ctx.globalAlpha = 0.6;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    } else {
+      const size = fitSize(text || " ", s.labelFont, R * 0.5, true, false, R * 3);
+      ctx.font = fontStr(s.labelFont, size, true, false);
+      const w = Math.max(R * 1.6, ctx.measureText(text).width + 44);
+      const h = size * 1.9;
+      roundRect(-w / 2, -h / 2, w, h, 10);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.fill();
+      ctx.shadowColor = "transparent";
+      ctx.strokeStyle = s.stickerColor;
+      ctx.lineWidth = 6;
+      ctx.stroke();
+      fill = s.stickerColor;
+      maxW = w - 30;
+    }
+
+    if (text) {
+      ctx.shadowColor = "transparent";
+      const size = fitSize(text, s.labelFont, R * 0.46, true, false, maxW);
+      ctx.font = fontStr(s.labelFont, size, true, false);
+      ctx.fillStyle = fill;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, 0, 2);
+    }
+    ctx.restore();
   }
 
   function drawTape(cardTop) {
     const s = state;
     const text = labelText();
-    ctx.font = fontStr(s.labelFont, s.labelSize, false, false);
     const size = fitSize(text, s.labelFont, s.labelSize, false, false, 560);
     ctx.font = fontStr(s.labelFont, size, false, false);
     const textW = ctx.measureText(text).width;
@@ -1027,6 +1858,115 @@
     ctx.fillText(text, W / 2, y + 2);
   }
 
+  function drawWatermark(W, H) {
+    const s = state;
+    const text = s.watermark.trim();
+    if (!text) return;
+    const size = fitSize(text, s.wmFont, s.wmSize, false, false, W * 0.5);
+    ctx.font = fontStr(s.wmFont, size, false, false);
+    const [vertical, horizontal] = s.wmPosition.split("-");
+    ctx.textAlign = horizontal === "right" ? "right" : "left";
+    ctx.textBaseline = "middle";
+    ctx.globalAlpha = s.wmOpacity / 100;
+    ctx.fillStyle = s.wmColor;
+    ctx.fillText(text, horizontal === "right" ? W - 48 : 48, vertical === "top" ? H * 0.045 : H - H * 0.045);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawFilmHoles(x0, y0, g) {
+    const holeW = 30;
+    const holeH = 40;
+    const step = 66;
+    const count = Math.max(2, Math.floor((g.cw - 40) / step));
+    const startX = x0 + (g.cw - (count - 1) * step) / 2;
+    ctx.fillStyle = state.bg1;
+    [y0 + g.padTop / 2, y0 + g.ch - g.padTop / 2].forEach((cy) => {
+      for (let i = 0; i < count; i++) {
+        roundRect(startX + i * step - holeW / 2, cy - holeH / 2, holeW, holeH, 8);
+        ctx.fill();
+      }
+    });
+  }
+
+  function cardGeometry(W) {
+    const s = state;
+    const style = s.frameStyle;
+    const cw = (W * s.cardWidth) / 100;
+    const inFrame = s.textMode === "frame" && style !== "none";
+    let side = style === "none" ? 0 : s.framePad;
+    if (style === "museum") side = Math.round(side * 1.5);
+    const padTop = style === "film" ? 74 : side;
+    const pw = cw - side * 2;
+    const ph = pw / RATIOS[s.photoRatio];
+    const textAreaH = inFrame ? s.bottomBorder : 0;
+    let bottom;
+    if (style === "film") bottom = textAreaH + 74;
+    else if (style === "none") bottom = 0;
+    else bottom = inFrame ? s.bottomBorder : side;
+    return { cw, ch: padTop + ph + bottom, pw, ph, side, padTop, inFrame, textAreaTop: padTop + ph, textAreaH };
+  }
+
+  function drawCard(g, k) {
+    const s = state;
+    const x0 = -g.cw / 2;
+    const y0 = -g.ch / 2;
+    const px = x0 + g.side;
+    const py = y0 + g.padTop;
+
+    ctx.shadowColor = `rgba(0, 0, 0, ${(s.shadow / 100) * 0.38})`;
+    ctx.shadowBlur = 42;
+    ctx.shadowOffsetY = 18;
+    ctx.fillStyle = s.frame;
+    if (s.frameStyle === "stamp") {
+      stampPath(x0, y0, g.cw, g.ch, 38, 10);
+      ctx.fill();
+    } else if (s.frameStyle === "none") {
+      ctx.fillRect(px, py, g.pw, g.ph);
+    } else {
+      roundRect(x0, y0, g.cw, g.ch, 6);
+      ctx.fill();
+    }
+    ctx.shadowColor = "transparent";
+
+    if (s.frameStyle === "film") drawFilmHoles(x0, y0, g);
+    if (s.frameStyle === "stamp") {
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x0 + 24, y0 + 24, g.cw - 48, g.ch - 48);
+    }
+    if (s.frameStyle === "museum") {
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.16)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x0 + 16, y0 + 16, g.cw - 32, g.ch - 32);
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.22)";
+      ctx.strokeRect(px - 10, py - 10, g.pw + 20, g.ph + 20);
+    }
+
+    drawSlots(px, py, g.pw, g.ph, k);
+
+    const idLabel = s.idShow ? idText() : "";
+    const idCorner = idLabel !== "" && s.idPosition === "corner" && g.inFrame;
+    if (idLabel !== "" && !idCorner && s.idPosition !== "label") drawBadge(px, py, idLabel);
+
+    if (g.inFrame) {
+      const th = textBlockHeight();
+      const areaTop = y0 + g.textAreaTop;
+      let boxLeft = px;
+      let boxW = g.pw;
+      if (idCorner) {
+        ctx.font = fontStr(s.labelFont, s.idSize, false, false);
+        const reserve = ctx.measureText(idLabel).width + 24;
+        boxW = Math.max(120, s.align === "left" ? g.pw - reserve : g.pw - reserve * 2);
+        if (s.align !== "left") boxLeft += reserve;
+      }
+      drawTexts(areaTop + (g.textAreaH - th) / 2, boxLeft, boxW);
+      if (idCorner) drawIdCorner(px + g.pw, areaTop + g.textAreaH / 2, idLabel);
+    }
+
+    if (s.sticker !== "none") drawSticker(px, py, g.pw, g.ph);
+    if (labelText() !== "" && s.labelStyle === "tape") drawTape(y0);
+  }
+
   function draw() {
     ensureFonts();
     const s = state;
@@ -1039,6 +1979,7 @@
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";
     ctx.shadowColor = "transparent";
+    ctx.setLineDash([]);
 
     if (s.gradient) {
       const grad = ctx.createLinearGradient(0, 0, 0, H);
@@ -1060,62 +2001,24 @@
     }
 
     const hasLabel = labelText() !== "";
-    const inFrame = s.textMode === "frame";
-    const pad = s.framePad;
-    const cw = (W * s.cardWidth) / 100;
-    const pw = cw - pad * 2;
-    const ph = pw / RATIOS[s.photoRatio];
-    const bottom = inFrame ? s.bottomBorder : pad;
-    const ch = pad + ph + bottom;
+    const g = cardGeometry(W);
     const gap = 44;
-    const outsideH = !inFrame ? gap + textBlockHeight() : 0;
-    const totalH = ch + outsideH;
-
+    const totalH = g.ch + (g.inFrame ? 0 : gap + textBlockHeight());
     const reserveTop = hasLabel && s.labelStyle !== "tape" ? H * 0.15 : H * 0.07;
     const reserveBottom = s.footer.trim() ? H * 0.085 : H * 0.05;
     const avail = H - reserveTop - reserveBottom;
     const k = Math.min(1, avail / totalH);
-    const centerY = reserveTop + avail / 2 + s.shift;
     const top = -totalH / 2;
 
     ctx.save();
-    ctx.translate(W / 2, centerY);
+    ctx.translate(W / 2, reserveTop + avail / 2 + s.shift);
     ctx.scale(k, k);
-
     ctx.save();
-    ctx.translate(0, top + ch / 2);
+    ctx.translate(0, top + g.ch / 2);
     ctx.rotate((s.tilt * Math.PI) / 180);
-    const x0 = -cw / 2;
-    const y0 = -ch / 2;
-    ctx.shadowColor = `rgba(0, 0, 0, ${(s.shadow / 100) * 0.38})`;
-    ctx.shadowBlur = 42;
-    ctx.shadowOffsetY = 18;
-    ctx.fillStyle = s.frame;
-    roundRect(x0, y0, cw, ch, 6);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-    drawPhoto(x0 + pad, y0 + pad, pw, ph, k);
-    const idLabel = s.idShow ? idText() : "";
-    const idCorner = idLabel !== "" && s.idPosition === "corner" && inFrame;
-    if (idLabel !== "" && !idCorner && s.idPosition !== "label") drawBadge(x0 + pad, y0 + pad, idLabel);
-    if (inFrame) {
-      const th = textBlockHeight();
-      const areaTop = y0 + pad + ph;
-      let boxLeft = x0 + pad;
-      let boxW = pw;
-      if (idCorner) {
-        ctx.font = fontStr(s.labelFont, s.idSize, false, false);
-        const reserve = ctx.measureText(idLabel).width + 24;
-        boxW = Math.max(120, s.align === "left" ? pw - reserve : pw - reserve * 2);
-        if (s.align !== "left") boxLeft += reserve;
-      }
-      drawTexts(areaTop + (bottom - th) / 2, boxLeft, boxW);
-      if (idCorner) drawIdCorner(x0 + cw - pad, areaTop + bottom / 2, idLabel);
-    }
-    if (hasLabel && s.labelStyle === "tape") drawTape(y0);
+    drawCard(g, k);
     ctx.restore();
-
-    if (!inFrame) drawTexts(top + ch + gap, -cw / 2, cw);
+    if (!g.inFrame) drawTexts(top + g.ch + gap, -g.cw / 2, g.cw);
     ctx.restore();
 
     if (hasLabel && s.labelStyle !== "tape") drawTopLabel(W, H);
@@ -1126,7 +2029,7 @@
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.globalAlpha = 0.85;
-      ctx.fillStyle = s.sciColor;
+      ctx.fillStyle = s.footerColor;
       ctx.fillText(s.footer, W / 2, H - H * 0.045);
       ctx.globalAlpha = 1;
     }
@@ -1134,28 +2037,41 @@
     drawWatermark(W, H);
   }
 
-  function loadFile(file) {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      const max = 2400;
-      const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-      const c = document.createElement("canvas");
-      c.width = Math.round(img.naturalWidth * k);
-      c.height = Math.round(img.naturalHeight * k);
-      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url);
-      photo = c;
-      customPhoto = true;
-      Object.assign(state, { zoom: 100, focusX: 50, focusY: 50 });
-      refresh();
-      schedule();
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      toast("Não consegui abrir essa imagem.");
-    };
-    img.src = url;
+  function loadFile(file, index) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const max = 2400;
+        const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.naturalWidth * k);
+        c.height = Math.round(img.naturalHeight * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        photos[index] = c;
+        state.slots[index] = { ...state.slots[index], zoom: 100, fx: 50, fy: 50 };
+        resolve(true);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(false);
+      };
+      img.src = url;
+    });
+  }
+
+  async function loadFiles(files, start) {
+    const count = SLOT_COUNT[state.layout];
+    let failed = false;
+    for (let i = 0; i < files.length && start + i < count; i++) {
+      const ok = await loadFile(files[i], start + i);
+      if (!ok) failed = true;
+    }
+    state.activeSlot = start;
+    refresh();
+    schedule();
+    if (failed) toast("Não consegui abrir uma das imagens.");
   }
 
   let toastTimer = 0;
@@ -1166,76 +2082,271 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
       el.hidden = true;
-    }, 2600);
+    }, 3200);
   }
 
-  function slug(text) {
-    return text
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+  const CRC_TABLE = (() => {
+    const table = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let i = 0; i < 8; i++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      table[n] = c >>> 0;
+    }
+    return table;
+  })();
+
+  function crc32(bytes) {
+    let crc = 0xffffffff;
+    for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+    return (crc ^ 0xffffffff) >>> 0;
   }
 
-  function showResult(blob) {
-    const img = document.getElementById("result");
-    if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
-    img.src = URL.createObjectURL(blob);
+  function buildZip(files) {
+    const encoder = new TextEncoder();
+    const parts = [];
+    const central = [];
+    let offset = 0;
+    files.forEach((file) => {
+      const nameBytes = encoder.encode(file.name);
+      const crc = crc32(file.bytes);
+      const size = file.bytes.length;
+      const local = new DataView(new ArrayBuffer(30));
+      local.setUint32(0, 0x04034b50, true);
+      local.setUint16(4, 20, true);
+      local.setUint16(6, 0x0800, true);
+      local.setUint16(12, 0x21, true);
+      local.setUint32(14, crc, true);
+      local.setUint32(18, size, true);
+      local.setUint32(22, size, true);
+      local.setUint16(26, nameBytes.length, true);
+      parts.push(local.buffer, nameBytes, file.bytes);
+      const entry = new DataView(new ArrayBuffer(46));
+      entry.setUint32(0, 0x02014b50, true);
+      entry.setUint16(4, 20, true);
+      entry.setUint16(6, 20, true);
+      entry.setUint16(8, 0x0800, true);
+      entry.setUint16(14, 0x21, true);
+      entry.setUint32(16, crc, true);
+      entry.setUint32(20, size, true);
+      entry.setUint32(24, size, true);
+      entry.setUint16(28, nameBytes.length, true);
+      entry.setUint32(42, offset, true);
+      central.push(entry.buffer, nameBytes);
+      offset += 30 + nameBytes.length + size;
+    });
+    const centralSize = central.reduce((total, part) => total + part.byteLength, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true);
+    end.setUint16(8, files.length, true);
+    end.setUint16(10, files.length, true);
+    end.setUint32(12, centralSize, true);
+    end.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, end.buffer], { type: "application/zip" });
+  }
+
+  const sheetUrls = [];
+  function closeSheet() {
+    document.getElementById("overlay").hidden = true;
+    sheetUrls.splice(0).forEach((url) => URL.revokeObjectURL(url));
+  }
+
+  function openSheet(build) {
+    const sheet = document.getElementById("sheet");
+    sheet.replaceChildren();
+    build(sheet);
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "btn btn-primary";
+    close.textContent = "Fechar";
+    close.addEventListener("click", closeSheet);
+    sheet.appendChild(close);
     document.getElementById("overlay").hidden = false;
   }
 
-  function afterExport(message) {
-    if (state.idShow && state.idAuto) {
-      state.idNumber = clamp((parseInt(state.idNumber, 10) || 0) + 1, 0, 99999);
-      refresh();
-      schedule();
-      persist();
-      toast(`${message || "Imagem pronta."} Próximo: ${idText()}.`);
-    } else if (message) {
-      toast(message);
-    }
+  function showImages(blobs) {
+    openSheet((sheet) => {
+      blobs.forEach((blob, i) => {
+        const url = URL.createObjectURL(blob);
+        sheetUrls.push(url);
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = `Imagem ${i + 1}`;
+        sheet.appendChild(img);
+      });
+      const hint = document.createElement("p");
+      hint.textContent = "Pressione e segure cada imagem (celular) ou clique com o botão direito (computador) para salvar.";
+      sheet.appendChild(hint);
+    });
   }
 
-  async function exportImage() {
-    await Promise.all(usedFonts().map((f) => document.fonts.load(f).catch(() => {})));
+  function showText(text) {
+    openSheet((sheet) => {
+      const area = document.createElement("textarea");
+      area.readOnly = true;
+      area.value = text;
+      sheet.appendChild(area);
+      const hint = document.createElement("p");
+      hint.textContent = "Copie este texto e cole numa planilha ou num arquivo .csv.";
+      sheet.appendChild(hint);
+      const copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "btn";
+      copy.textContent = "Copiar tudo";
+      copy.addEventListener("click", async () => {
+        area.select();
+        try {
+          await navigator.clipboard.writeText(text);
+          toast("Copiado.");
+        } catch (err) {}
+      });
+      sheet.appendChild(copy);
+    });
+  }
+
+  function baseName() {
+    return [slug(state.label), slug(state.name)].filter(Boolean).join("-") || "passaro";
+  }
+
+  function fontsReady() {
+    return Promise.all(usedFonts().map((f) => document.fonts.load(f).catch(() => {})));
+  }
+
+  async function renderBlob() {
+    exporting = true;
     draw();
+    exporting = false;
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-    if (!blob) {
-      toast("Não foi possível gerar a imagem.");
-      return;
-    }
+    schedule();
+    return blob;
+  }
+
+  async function deliver(files, zipName, message) {
     if (downloads) {
-      const name = [slug(state.label), slug(state.name)].filter(Boolean).join("-") || "passaro";
       try {
-        await downloads.save({ filename: `${name}.png`, data: blob });
-        afterExport("Imagem salva.");
+        if (files.length === 1) {
+          await downloads.save({ filename: files[0].name, data: files[0].blob });
+        } else {
+          const entries = await Promise.all(
+            files.map(async (file) => ({ name: file.name, bytes: new Uint8Array(await file.blob.arrayBuffer()) }))
+          );
+          await downloads.save({ filename: zipName, data: buildZip(entries) });
+        }
+        afterExport(message);
         return;
       } catch (err) {
         if (err && err.code === "declined") return;
       }
     }
-    showResult(blob);
-    afterExport();
+    showImages(files.map((file) => file.blob));
+    afterExport("");
+  }
+
+  async function exportCurrent() {
+    await fontsReady();
+    const blob = await renderBlob();
+    if (!blob) {
+      toast("Não foi possível gerar a imagem.");
+      return;
+    }
+    await deliver([{ name: `${baseName()}.png`, blob }], "", "Imagem salva.");
+  }
+
+  async function exportCarousel() {
+    await fontsReady();
+    const base = baseName();
+    const count = SLOT_COUNT[state.layout];
+    const files = [{ name: `${base}-1.png`, blob: await renderBlob() }];
+    const original = { layout: state.layout, slot0: state.slots[0], photo0: photos[0] };
+    try {
+      for (let i = 0; i < count; i++) {
+        if (!photos[i]) continue;
+        state.layout = "1";
+        state.slots[0] = state.slots[i];
+        photos[0] = photos[i];
+        files.push({ name: `${base}-${files.length + 1}.png`, blob: await renderBlob() });
+      }
+    } finally {
+      state.layout = original.layout;
+      state.slots[0] = original.slot0;
+      photos[0] = original.photo0;
+      schedule();
+    }
+    if (files.some((file) => !file.blob)) {
+      toast("Não foi possível gerar as imagens.");
+      return;
+    }
+    await deliver(files, `${base}-carrossel.zip`, `Carrossel salvo (${files.length} imagens).`);
+  }
+
+  function catalogCsv() {
+    const quote = (value) => `"${String(value).replace(/"/g, '""')}"`;
+    const header = ["numero", "modelo", "nome", "cientifico", "data", "registrado_em"];
+    const rows = catalog.map((e) =>
+      [e.tag || e.n, e.preset, e.name, e.sci, e.date, new Date(e.ts).toISOString()].map(quote).join(";")
+    );
+    return `\uFEFF${[header.map(quote).join(";"), ...rows].join("\r\n")}`;
+  }
+
+  async function exportCsv() {
+    if (!catalog.length) {
+      toast("O catálogo está vazio.");
+      return;
+    }
+    const text = catalogCsv();
+    if (downloads) {
+      try {
+        await downloads.save({ filename: "catalogo-passaros.csv", data: text });
+        toast("Catálogo exportado.");
+        return;
+      } catch (err) {
+        if (err && err.code === "declined") return;
+      }
+    }
+    showText(text);
+  }
+
+  function slotAt(clientX, clientY) {
+    if (!lastSlots) return -1;
+    const rect = canvas.getBoundingClientRect();
+    const x = (clientX - rect.left) * (canvas.width / rect.width);
+    const y = (clientY - rect.top) * (canvas.height / rect.height);
+    const p = lastSlots.matrix.inverse().transformPoint(new DOMPoint(x, y));
+    return lastSlots.rects.findIndex((r) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h);
+  }
+
+  function selectSlot(index) {
+    if (index < 0 || index === state.activeSlot) return;
+    state.activeSlot = index;
+    refresh();
+    schedule();
   }
 
   let drag = null;
   canvas.addEventListener("pointerdown", (e) => {
-    if (e.pointerType !== "mouse" || !photo) return;
-    drag = { x: e.clientX, y: e.clientY, fx: state.focusX, fy: state.focusY };
+    if (e.pointerType !== "mouse") return;
+    const index = slotAt(e.clientX, e.clientY);
+    if (index < 0) return;
+    selectSlot(index);
+    if (!photos[index]) return;
+    const slotState = state.slots[index];
+    drag = { index, x: e.clientX, y: e.clientY, fx: slotState.fx, fy: slotState.fy };
     canvas.setPointerCapture(e.pointerId);
     canvas.classList.add("dragging");
   });
   canvas.addEventListener("pointermove", (e) => {
     if (!drag) return;
+    const img = photos[drag.index];
+    if (!img) return;
     const rect = canvas.getBoundingClientRect();
     const toCanvas = canvas.width / rect.width;
-    const iw = photo.naturalWidth || photo.width;
-    const ih = photo.naturalHeight || photo.height;
-    const dx = ((e.clientX - drag.x) * toCanvas) / photoScaleOnCanvas;
-    const dy = ((e.clientY - drag.y) * toCanvas) / photoScaleOnCanvas;
-    state.focusX = Math.round(clamp(drag.fx - (dx / iw) * 100, 0, 100));
-    state.focusY = Math.round(clamp(drag.fy - (dy / ih) * 100, 0, 100));
+    const iw = img.naturalWidth || img.width;
+    const ih = img.naturalHeight || img.height;
+    const scale = slotScale[drag.index];
+    const dx = ((e.clientX - drag.x) * toCanvas) / scale;
+    const dy = ((e.clientY - drag.y) * toCanvas) / scale;
+    const slotState = state.slots[drag.index];
+    slotState.fx = Math.round(clamp(drag.fx - (dx / iw) * 100, 0, 100));
+    slotState.fy = Math.round(clamp(drag.fy - (dy / ih) * 100, 0, 100));
     refresh();
     schedule();
   });
@@ -1245,25 +2356,27 @@
   };
   canvas.addEventListener("pointerup", endDrag);
   canvas.addEventListener("pointercancel", endDrag);
+  canvas.addEventListener("click", (e) => selectSlot(slotAt(e.clientX, e.clientY)));
 
   canvas.addEventListener("dragover", (e) => e.preventDefault());
   canvas.addEventListener("drop", (e) => {
     e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) loadFile(file);
+    const files = [...e.dataTransfer.files].filter((file) => file.type.startsWith("image/"));
+    if (!files.length) return;
+    const index = slotAt(e.clientX, e.clientY);
+    loadFiles(files, index >= 0 ? index : state.activeSlot);
   });
 
-  document.getElementById("save").addEventListener("click", exportImage);
-  document.getElementById("reset").addEventListener("click", resetAll);
-  document.getElementById("close-overlay").addEventListener("click", () => {
-    document.getElementById("overlay").hidden = true;
-  });
+  document.getElementById("save").addEventListener("click", exportCurrent);
+  document.getElementById("save-carousel").addEventListener("click", exportCarousel);
+  document.getElementById("reset").addEventListener("click", () => applyPreset(state.preset));
   document.getElementById("overlay").addEventListener("click", (e) => {
-    if (e.target.id === "overlay") e.currentTarget.hidden = true;
+    if (e.target.id === "overlay") closeSheet();
   });
 
   buildUI();
   refresh();
+  renderCatalog();
   writeStorage();
   draw();
   window.addEventListener("pagehide", writeStorage);
